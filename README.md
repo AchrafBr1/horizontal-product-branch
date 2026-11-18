@@ -1,4 +1,4 @@
-# HPB — Horizontal Product Branch
+# HPB - Horizontal Product Branch
 
 **Branch-and-merge for the product, not the code: one picture for how hardware, firmware and software evolve.**
 
