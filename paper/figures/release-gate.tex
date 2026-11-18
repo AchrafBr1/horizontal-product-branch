@@ -1,0 +1,51 @@
+% F3 -- Condition B: planning with a release gate.
+% Illustrative data. Requires hpb.sty v1.1. Canvas: document defaults.
+% Lanes follow Algorithm 1: closed branches take the innermost free lane,
+% branches open at NOW the outermost one.
+\begin{figure}[t]
+\centering
+\hpbfit{%
+\begin{hpbgraph}
+  % lanes: improvements above, issues below (three issue lanes: lane packing)
+  \hpblane{1}{imp}{Improvement (I)}{0}{17.7}
+  \hpblane{-1}{iss}{Issue (X)}{0}{17.7}
+  \hpblane{-2}{iss}{Issue (X)}{0}{17.7}
+  \hpblane{-3}{iss}{Issue (X)}{0}{17.7}
+  % main line: history (solid) up to NOW, plan (dashed) afterwards
+  \hpbmainline{0}{11}
+  \hpbmainline*{11}{17.7}
+  \hpborigin{0}{Product A}
+  \hpbrelease{1}{v2.0}
+  \hpbrelease{6}{v2.0.1}
+  \hpbplanned{13}{v2.1}{May 2027}
+  \hpbplanned{17}{v2.2}{Sep 2027}
+  % history: a hotfix already merged (closed: innermost lane)
+  \hpbbranch[forkoff=0.6, label={X-210 Sync error}]{iss}{1}{-1}{2}{5}{merge}{6}
+  % open but untargeted issue (open at NOW: outermost lane); no gate
+  \hpbbranch[forkoff=0.3, label={X-213 Display flicker (untargeted)}]{iss}{1}{-3}{4}{11}{open}{}
+  % targeted branches: open at NOW, dashed continuation into the gate of v2.1
+  % (nested rises: farther lane, smaller offset; offsets 0.2 column apart)
+  \hpbbranch[forkoff=0.5, mergeoff=0.8, label={I-50 Multi-user access}]{imp}{1}{1}{3}{11}{target}{13}
+  \hpbbranch[forkoff=0.3, mergeoff=0.4, label={X-211 Report totals}]{iss}{6}{-2}{7}{11}{target}{13}
+  \hpbbranch[forkoff=0.6, mergeoff=0.6, label={X-212 CSV encoding}]{iss}{6}{-1}{8}{11}{target}{13}
+  % steps: a done sub-task on I-50; X-212 verified in release candidate RC1
+  \hpbstep{imp}{10}{1}{done}
+  \hpbstep{iss}{9}{-1}{pass}
+  % gate around the planned baseline v2.1 and NOW marker
+  \hpbgate{13}{1}{-2}{gate v2.1}
+  \hpbnow{11}{1}{-3}
+  \hpbcallout{6.3,2.35}{v2.1 cannot be published until I-50 and X-211 are verified\\
+    (as X-212 is), re-targeted or discarded (rule R4)}{12.6,1.62}
+  % ordinal time axis with calendar ticks (history part)
+  \hpbaxis{0}{17.7}{-3.75}
+  \hpbtick{1}{Jan 2027}{-3.75}
+  \hpbtick{6}{Feb}{-3.75}
+  \hpbtick{11}{Apr}{-3.75}
+\end{hpbgraph}}
+\caption{Situation~B: a release gate (illustrative). Three
+branches are committed to \texttt{v2.1}, and their dashed lines enter its
+gate; only X-212 has a passed verification. By \cref{rule:gate},
+\texttt{v2.1} cannot ship until I-50 and X-211 are verified, moved or
+discarded. X-213 is open but committed to nothing.}
+\label{fig:release-gate}
+\end{figure}

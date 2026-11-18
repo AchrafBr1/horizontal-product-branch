@@ -1,0 +1,54 @@
+% ---------------------------------------------------------------------
+%  11-conclusion.tex
+% ---------------------------------------------------------------------
+\section{Conclusion}
+\label{sec:conclusion}
+
+Software teams learned long ago that parallel change can only be managed,
+and audited, if every line of work has a known starting point and an
+explicit moment at which it rejoins the main line. Product management never
+got the same discipline. Our tools tell us what is being done and in which
+workflow state. They do not tell us from which version of the product the
+work started, what else was in flight on the same product, or which
+firmware release or hardware revision finally closed it. After more than
+seven years of managing hardware, firmware and software products, that is
+the gap I kept running into, and HPB is my answer to it.
+
+HPB takes the branch-and-merge model from source code and applies it to the
+product. It gives you:
+\begin{itemize}[leftmargin=1.5em,itemsep=1pt,topsep=3pt]
+  \item a \emph{model} of product lines, baselines, typed branches, merges,
+        discards, line forks and release gates, governed by seven rules
+        (\cref{sec:onepage,sec:model,app:formal});
+  \item a \emph{standard notation}, so that everybody draws the same
+        situation the same way (\cref{sec:notation,app:card});
+  \item an \emph{operating guide} and \emph{metrics} that fall out of the
+        graph (\cref{sec:operating,sec:metrics});
+  \item \emph{HPB Markup} and an open-source renderer, so a diagram is a
+        few lines of text in any web stack or document
+        (\cref{sec:tooling,app:markup}); and
+  \item a \emph{prototype} in a product management portal that sits on
+        top of existing trackers instead of replacing them
+        (\cref{sec:implementation}).
+\end{itemize}
+
+HPB does not replace Scrum, Kanban, Stage-Gate or formal configuration
+management. It sits above them and makes one thing visible that none of
+them shows: the product itself, as it evolves through released and planned
+versions, with every piece of work anchored to the version it started from
+and the version that closed it.
+
+Whether that visibility improves planning and quality in your organization
+is something you can test in two release cycles
+(\cref{sec:limitations-evaluate}). The notation, the \LaTeX{} package and
+the renderer are open, so the method can be adopted, criticized and
+improved in a common visual language.
+
+\paragraph{An invitation.}
+Try HPB on one product line for two release cycles. Then share what you
+found, the diagram that worked or the counter-example that broke the
+method, through the issue tracker of \hpbrepo{} or by email to the
+address on the first page. Changes to the method and the notation go
+through versioned releases (HPB~1.x), so a diagram drawn today stays
+readable tomorrow. Start with one line, draw it honestly, and let the
+diagram show you what your current tools have been hiding.

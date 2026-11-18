@@ -1,0 +1,68 @@
+% F-M -- HPB Markup: the canonical example A (a firmware line) as text and
+% as the diagram it produces. Illustrative data. Requires hpb.sty v1.1 and
+% the listings language "hpb" (defined in main.tex).
+% Column positions are those computed by @hpb/core 1.0 for this source
+% (x positions divided by the column width): one column per event in
+% statement order; the merge terminals of the branches closed by one
+% "release ... merges" statement share one column just before the baseline;
+% a dated baseline after a shared terminal column gets a small spacer. The
+% document is pure history, so the renderer draws no NOW marker.
+%   1 v1.0 | 2 I-21 | 3 X-101 | 4 terminal X-101 | 5 v1.0.1 | 6 X-102 |
+%   7 T-8 | 8 terminals I-21, X-102 | 9.4 v1.1 | 10.4 I-22 | 11.4 X-103 |
+%   12.4 terminals T-8, I-22, X-103 | 14.4 v1.2
+\begin{figure}[tbp]
+\centering
+\begin{minipage}{0.66\linewidth}
+\begin{lstlisting}[style=hpb,basicstyle=\ttfamily\footnotesize,numbers=left,numberstyle=\tiny\color{black!45},numbersep=6pt,xleftmargin=16pt]
+hpb "Product A: firmware line"
+line A "Product A"
+release v1.0 @2026-01
+improvement I-21 "Faster pairing"
+issue X-101
+release v1.0.1 merges X-101
+issue X-102 "Clock drift"
+task T-8 "Migrate logs"
+release v1.1 @2026-03 merges I-21, X-102
+improvement I-22 "Low-power mode"
+issue X-103 "Menu translation"
+release v1.2 @2026-05 merges T-8, I-22, X-103
+\end{lstlisting}
+\end{minipage}
+
+\medskip
+\hpbfit{%
+\begin{hpbgraph}
+  % lanes: improvements above, issues and tasks below the main line
+  \hpblane{1}{imp}{Improvement (I)}{0}{15}
+  \hpblane{-1}{iss}{Issue (X)}{0}{15}
+  \hpblane{-2}{task}{Task (T)}{0}{15}
+  % main line: pure history, no NOW marker
+  \hpbmainline{0}{15}
+  \hpborigin{0}{Product A}
+  % released baselines
+  \hpbrelease{1}{v1.0}
+  \hpbrelease{5}{v1.0.1}
+  \hpbrelease{9.4}{v1.1}
+  \hpbrelease{14.4}{v1.2}
+  % branches (fork col, lane, start col, end col, end, merge col)
+  \hpbbranch[label={I-21 Faster pairing}]{imp}{1}{1}{2}{8}{merge}{9.4}
+  \hpbbranch[label={X-101}]{iss}{1}{-1}{3}{4}{merge}{5}
+  \hpbbranch[forkoff=0.6, label={X-102 Clock drift}]{iss}{5}{-1}{6}{8}{merge}{9.4}
+  \hpbbranch[forkoff=0.3, mergeoff=0.3, label={T-8 Migrate logs}]{task}{5}{-2}{7}{12.4}{merge}{14.4}
+  \hpbbranch[label={I-22 Low-power mode}]{imp}{9.4}{1}{10.4}{12.4}{merge}{14.4}
+  \hpbbranch[mergeoff=0.6, label={X-103 Menu translation}]{iss}{9.4}{-1}{11.4}{12.4}{merge}{14.4}
+  % ordinal time axis with the calendar ticks given by the @dates
+  \hpbaxis{0}{15}{-2.75}
+  \hpbtick{1}{Jan 2026}{-2.75}
+  \hpbtick{9.4}{Mar}{-2.75}
+  \hpbtick{14.4}{May}{-2.75}
+\end{hpbgraph}}
+\caption{HPB Markup in practice (illustrative). Top: twelve lines of text
+that describe a firmware line. Bottom: the diagram they produce, drawn here
+with \texttt{hpb.sty} at the column positions the renderer computes for
+this source. Nobody types a coordinate: statement order gives the columns,
+the branch type gives the lane, and each \texttt{release \dots{} merges}
+closes the listed branches (\cref{rule:origin,rule:closure}). The terminals
+closed by one release share a column; the history has no NOW marker.}
+\label{fig:markup-example}
+\end{figure}

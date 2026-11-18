@@ -1,0 +1,48 @@
+% F12 -- Condition H: field return to corrective action.
+% Illustrative data. Requires hpb.sty v1.1. Canvas: document defaults.
+% No improvement lane in this diagram, so the lab lane is the first lane
+% above the main line (lanes are stacked outward without gaps).
+\begin{figure}[t]
+\centering
+\hpbfit{%
+\begin{hpbgraph}
+  \hpblane{1}{lab}{Lab (L)}{0}{17.7}
+  \hpblane{-1}{iss}{Issue (X)}{0}{17.7}
+  \hpblane{-2}{iss}{Issue (X)}{0}{17.7}
+  \hpbmainline{0}{13}
+  \hpbmainline*{13}{17.7}
+  \hpborigin{0}{DMS-4000\\Rev B}
+  \hpbrelease{1}{v2.0}
+  \hpbprocess[]{8}{PC-7}
+  \hpbplanned[interchangeable]{15}{Rev B.1}{Mar 2027}
+  % field return closed without a design change: contained (rationale class
+  % "resolved without a product baseline")
+  \hpbbranch[forkoff=0.6, label={X-152 Housing damage}]{iss}{1}{-1}{3}{4}{discard}{}
+  \hpblabel[right]{4}{-1}{\itshape contained:\\\itshape stock reworked}
+  % field return with failure analysis, closed by a process baseline, then
+  % checked for effectiveness after closure
+  \hpbbranch[forkoff=0.3, label={X-150 Relay failure (RMA)}]{iss}{1}{-2}{2}{7}{merge}{8}
+  \hpbstep{iss}{5}{-2}{done}
+  \hpbstep{iss}{6}{-2}{pass}
+  \hpbpoststep{iss}{7.5}{10}{-2}{pass}
+  \hpblabel{10}{-2}{\itshape effectiveness verified}
+  % supplier end-of-life notice: qualification of an alternative relay,
+  % targeted at an interchangeable hardware baseline
+  \hpbbranch[forkoff=0.6, label={L-9 PCN-221 relay EOL}]{lab}{8}{1}{9}{13}{target}{15}
+  \hpbstep{lab}{11}{1}{pass}
+  \hpbnow{13}{1}{-2}
+  % ordinal time axis
+  \hpbaxis{0}{17.7}{-3.0}
+  \hpbtick{1}{Apr 2026}{-3.0}
+  \hpbtick{8}{Jul}{-3.0}
+  \hpbtick{13}{Nov}{-3.0}
+  \hpbtick{15}{Mar 2027}{-3.0}
+\end{hpbgraph}}
+\caption{Situation~H: from field return to corrective action
+(illustrative). X-150 is solved by changing how the product is built, so it
+merges into the process baseline PC-7 (square), and a step after closure
+records that the action worked. X-152 is closed as contained, without a
+product baseline. The supplier notice PCN-221 opens L-9, targeted at the
+interchangeable hardware baseline \texttt{Rev~B.1}.}
+\label{fig:rma}
+\end{figure}

@@ -1,0 +1,148 @@
+% ---------------------------------------------------------------------
+%  08-metrics.tex -- Metrics that fall out of the graph
+%  The formulas (labels eq:leadtime ... eq:unprop) live in
+%  appendix-a-formal.tex, subsection app:metrics. \input{figures/metrics}
+%  appears here exactly once.
+% ---------------------------------------------------------------------
+\section{Metrics That Fall Out of the Graph}
+\label{sec:metrics}
+
+A useful side effect of the rules is that measurement comes for free.
+Every branch has a type, an origin baseline and an opening date and, once
+closed, exactly one terminal with a closing date. That is enough to compute
+the flow and quality metrics of \cref{tab:metrics} straight from the
+graph, with no extra data collection and no spreadsheet kept on the side.
+The exact definitions are in \cref{app:metrics}.\footnote{Two details keep
+the counts honest. Sub-tasks are steps, not branches (\cref{rule:typed}),
+so every count counts a unit of change once. And a reopened branch is rare
+but possible: each period during which a branch is open or targeted is a
+\emph{visit}, lead times are measured per visit, and reopens are reported
+separately.}
+
+All of them are \emph{descriptive}. They exist to bring good questions to
+the meetings of \cref{subsec:method-cadence}, not to rank teams or people
+(\cref{subsec:metrics-goodhart}).
+
+\begin{table}[tbp]
+  \centering
+  \small
+  \caption{The HPB metrics: the question each one answers, how to read it,
+    and the meeting it feeds (\cref{subsec:method-cadence}). Definitions in
+    \cref{app:metrics}.}
+  \label{tab:metrics}
+  \renewcommand{\arraystretch}{1.1}
+  \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{2.3cm}
+      >{\raggedright\arraybackslash}X
+      >{\raggedright\arraybackslash}X
+      >{\raggedright\arraybackslash}p{1.9cm}@{}}
+    \toprule
+    \textbf{Metric} & \textbf{Question it answers} & \textbf{How to read it}
+      & \textbf{Feeds} \\
+    \midrule
+    Lead time
+      & How long from accepting a request to having it in a published
+        version (or deciding not to)?
+      & Merged and discarded apart, by type. Ends at publication: the
+        time customers feel.
+      & Line review \\
+    Age of open work
+      & What has been open too long?
+      & Older than the usual lead time of its type: on the triage agenda.
+      & Triage \\
+    Work in progress
+      & How much is open now, per type?
+      & Open issues rising and not brought down by releases: an early sign
+        of a quality problem.
+      & Triage, planning \\
+    Throughput
+      & How much do we deliver per period?
+      & Use windows that span several releases; read it with lead time.
+      & Line review \\
+    Merge and discard ratios
+      & Of what we closed, how much did we deliver?
+      & Only by discard reason. Many duplicates: intake problem. Many
+        \emph{not viable} lab branches: often healthy.
+      & Line review \\
+    Merge distance
+      & How many releases did a change wait?
+      & Large values: work pushed back again and again; its specification
+        may be stale.
+      & Planning \\
+    Release batch size
+      & How much does a version contain?
+      & Compare a planned set with recent releases before committing it.
+      & Planning \\
+    Escaped defects
+      & Which issues were seen in each version, per change shipped?
+      & Compare only at similar exposure; ``seen in'' is not ``introduced
+        by''.
+      & Line review \\
+    Gate slip
+      & How late did the version ship?
+      & Never alone: with the branches moved out and discarded from it.
+      & Gate review \\
+    Maintenance load
+      & How much new work still lands on an old reference?
+      & Sets life-cycle dates with numbers instead of opinions.
+      & Line review \\
+    Unported fixes
+      & Which fixes affect another maintained stream and were not ported?
+      & Should be zero after every line review.
+      & Line review \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\paragraph{Flow.}
+Lead time ends when the version is \emph{published}, not when engineering
+is done: it measures how long until the change is available in the
+product, the same idea as lead time in software delivery
+\citep{forsgren2018accelerate}, applied to firmware and hardware too. Its
+leading counterpart is the age of what is still open. Work in progress is
+a staircase over time, one step up at each fork, one down at each terminal
+and a big drop at each release; \cref{fig:metrics} shows it for
+situation~A. Little's law \citep{little1961} ties work in progress,
+throughput and lead time together. I use it as a sanity check (if the
+three numbers do not roughly agree, the window is too short or the system
+is not stable) and as a planning lever, in the spirit of
+\citet{reinertsen2009flow}: at a given delivery rate, the only way to
+shorten lead time is to have less open work.
+
+\input{figures/metrics}
+
+\paragraph{Quality and maintenance.}
+The release batch is exactly the release-note list, and smaller batches go
+with faster feedback \citep{reinertsen2009flow}. Escaped defects need three
+cautions: \emph{seen in} is not \emph{introduced by}; counts grow with how
+widely a version is deployed, so normalize by installed base where you
+have it; and all of it assumes the fork baseline of every issue is the
+version where it was really seen, which is why intake makes it mandatory
+(\cref{subsec:method-practices}). Gate slip only works if the original
+target date is kept when the date changes. Maintenance load and unported
+fixes keep old references and maintenance streams honest.
+
+\subsection{Reading metrics responsibly}
+\label{subsec:metrics-goodhart}
+
+Every metric above can be improved without improving the product. Lead
+time drops if branches are opened late or split artificially. The discard
+ratio drops if hopeless work is kept open. Escaped defects drop if issues
+are filed against the wrong version. Gate slip disappears if scope is cut
+silently. This is Goodhart's law: when a measure becomes a target, it stops
+being a good measure. Three safeguards:
+
+\begin{enumerate}[leftmargin=*,itemsep=2pt]
+  \item \emph{Report in pairs} that are hard to game together: lead time
+    with throughput, gate slip with descoped count, merge ratio with age
+    of open work.
+  \item \emph{Always show the diagram next to the numbers}, so every
+    anomaly can be traced to the branches that cause it.
+  \item \emph{Do not use the metrics to compare or reward people or
+    teams.} Rules R1--R7 are what make the numbers trustworthy; a regime
+    that rewards breaking them destroys its own data.
+\end{enumerate}
+
+\noindent The metrics describe how change flows through a product. They do
+not measure customer value, effort or the quality of decisions; like
+value-stream mapping \citep{rother1999lts}, they make the flow visible in
+order to discuss it, not to replace the discussion.

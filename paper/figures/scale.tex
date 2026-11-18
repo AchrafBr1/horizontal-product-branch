@@ -1,0 +1,54 @@
+% F6 -- Condition E: readability at scale (collapsed history, lane packing).
+% Illustrative data. Requires hpb.sty v1.1. Canvas: document defaults.
+% Lanes follow Algorithm 1 (closed: innermost free lane; open at NOW:
+% outermost free lane).
+\begin{figure}[t]
+\centering
+\hpbfit{%
+\begin{hpbgraph}
+  % two lanes per type; older open branches occupy the outer lanes
+  \hpblane{4}{lab}{Lab (L)}{0}{19.7}
+  \hpblane{3}{lab}{Lab (L)}{0}{19.7}
+  \hpblane{2}{imp}{Improvement (I)}{0}{19.7}
+  \hpblane{1}{imp}{Improvement (I)}{0}{19.7}
+  \hpblane{-1}{iss}{Issue (X)}{0}{19.7}
+  \hpblane{-2}{iss}{Issue (X)}{0}{19.7}
+  \hpblane{-3}{task}{Task (T)}{0}{19.7}
+  \hpblane{-4}{task}{Task (T)}{0}{19.7}
+  % main line; history before v2.2 is collapsed into count badges
+  \hpbmainline{0}{19}
+  \hpbmainline*{19}{19.7}
+  \hpborigin{0}{Product B}
+  \hpbrelease{1}{v1.0}  \hpbcollapsed{1}{14}
+  \hpbrelease{3}{v1.1}  \hpbcollapsed{3}{9}
+  \hpbrelease{4}{v2.0}  \hpbcollapsed{4}{21}
+  \hpbrelease{8}{v2.1}  \hpbcollapsed{8}{12}
+  \hpbrelease{15}{v2.2}
+  % long-lived open branches (outer lanes)
+  \hpbbranch[label={T-14 EMC re-test}]{task}{1}{-4}{2}{19}{open}{}
+  \hpbbranch[forkoff=0.6, label={L-5 Radio module}]{lab}{4}{4}{5}{19}{open}{}
+  \hpbbranch[forkoff=0.4, label={T-20 Field logs}]{task}{4}{-3}{6}{19}{open}{}
+  \hpbbranch[forkoff=0.7, label={X-88 Rare reboot}]{iss}{4}{-2}{7}{19}{open}{}
+  % branches forked from v2.1 (nested rises: farther lane, smaller offset;
+  % offsets at least 0.25 column apart and clear of the v2.1 tag)
+  \hpbbranch[forkoff=0.55, label={L-7 Antenna tuning}]{lab}{8}{3}{9}{19}{open}{}
+  \hpbbranch[forkoff=0.8, label={I-42 Fleet dashboard}]{imp}{8}{2}{10}{19}{open}{}
+  \hpbbranch[forkoff=1.05, label={I-41 Quick setup}]{imp}{8}{1}{11}{13}{merge}{15}
+  \hpbbranch[label={X-90 Clock drift}]{iss}{8}{-1}{12}{14}{merge}{15}
+  % lanes reused after the merges into v2.2
+  \hpbbranch[forkoff=0.6, label={I-45 Voice UI}]{imp}{15}{1}{16}{19}{open}{}
+  \hpbbranch[label={X-95 Pairing}]{iss}{15}{-1}{17}{19}{open}{}
+  % NOW marker (column 18 is left free so that labels clear the open heads)
+  \hpbnow{19}{4}{-4}
+  % callouts (boxes and leaders clear of every path and label)
+  \hpbcallout{2.75,-2.3}{collapsed history:\\badge = merged\\branches hidden}{3,-0.62}
+  \hpbcallout{2.35,3.2}{long-lived open\\branch, outer lane}{4.6,3.2}
+  \hpbcallout{14.6,-4.85}{8 open branches at NOW on 8 lanes\\(= maximum overlap per type)}{19,-4.45}
+\end{hpbgraph}}
+\caption{Situation~E: many branches at once (illustrative). Older
+releases are collapsed into count badges. Each type gets as many lanes as it
+has overlapping branches, and freed lanes are reused: I-45 and X-95 take the
+lanes of I-41 and X-90. Long-lived open work sits on the outer lanes; the
+length of an open path counts the releases it has outlived, not days.}
+\label{fig:scale}
+\end{figure}

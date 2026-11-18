@@ -1,0 +1,60 @@
+cff-version: 1.2.0
+message: >-
+  If you use HPB (the methodology, its notation or the HPB Markup toolkit),
+  please cite the paper as given under preferred-citation.
+title: "HPB — Horizontal Product Branch: methodology and HPB Markup toolkit"
+type: software
+version: 1.0.0
+date-released: "2026-11-19"
+license:
+  - MIT
+  - CC-BY-4.0
+repository-code: "https://github.com/AchrafBr1/hpb"
+url: "https://github.com/AchrafBr1/hpb"
+authors:
+  - family-names: Bouchtarouif El Khiat
+    given-names: Achraf
+    email: achrafbouchtarouif@gmail.com
+keywords:
+  - product management
+  - product evolution
+  - hardware
+  - firmware
+  - software
+  - release planning
+  - traceability
+  - branch-and-merge
+  - configuration management
+  - visual notation
+  - diagrams as code
+abstract: >-
+  Horizontal Product Branch (HPB) is a practitioner's methodology for
+  planning and tracing product evolution across hardware, firmware and
+  software. It applies branch-and-merge to the product, not to the code:
+  every piece of work is a typed branch that forks from a released version
+  and ends in a named release or in a discard with a written reason. HPB is
+  defined by seven rules, a standard notation, an operating guide and
+  metrics that fall out of the graph. This repository contains the paper
+  and its LaTeX sources, the HPB Guide, and HPB Markup, an open-source text
+  language and toolkit that draws HPB diagrams in HTML, React, Next.js,
+  Vite, Markdown or the command line.
+preferred-citation:
+  type: report
+  title: >-
+    Horizontal Product Branch (HPB): A Practitioner's Methodology for
+    Planning and Tracing Product Evolution across Hardware, Firmware and
+    Software
+  authors:
+    - family-names: Bouchtarouif El Khiat
+      given-names: Achraf
+      email: achrafbouchtarouif@gmail.com
+  year: 2026
+  month: 11
+  publisher:
+    name: Zenodo
+  doi: 10.5281/zenodo.24355435
+  url: "https://doi.org/10.5281/zenodo.24355435"
+  version: "1.0"
+  status: preprint
+  license: CC-BY-4.0
+  notes: "Preprint v1.0"

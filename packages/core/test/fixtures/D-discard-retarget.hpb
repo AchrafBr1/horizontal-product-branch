@@ -1,0 +1,19 @@
+hpb "Discards and re-targeting"
+# Situation D of the HPB paper (figures/discard.tex), illustrative data.
+# Discards carry their rationale (rule R2); X-63 was moved from v3.1 to v3.2,
+# and the former target stays visible, faded.
+line A "Product A"
+release v3.0 @2026-07
+improvement I-60 "Solar panel"
+issue X-52 "Display flicker"
+issue X-57 "Screen flickers"
+discard I-60 "not viable (unit cost)"
+discard X-57 "duplicate of X-52"
+release v3.0.1 @2026-09 merges X-52
+improvement I-61 "Offline mode"
+issue X-63 "OTA timeout"
+step X-63 done "fix ready"
+now
+plan v3.1 @2027-03 targets I-61, X-63
+plan v3.2 @2027-06
+target X-63 v3.2

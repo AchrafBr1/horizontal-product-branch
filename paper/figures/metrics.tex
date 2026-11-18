@@ -1,0 +1,121 @@
+% F10 -- Metrics derived from the graph, computed from the Condition A example
+% (figure "software-line"). Illustrative data. Requires hpb.sty v1.0 and
+% pgfplots (compat=1.18). Ordinal columns are those of fig:software-line.
+\begin{figure}[t]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+    font=\sffamily\fontsize{7}{8.4}\selectfont,
+    mx/bar/.style  = {draw=hpbInk, line width=0.8pt, rounded corners=2pt},
+    mx/in/.style   = {font=\sffamily\fontsize{6.5}{7.8}\selectfont, text=hpbInk,
+                      inner sep=1pt},
+    mx/ann/.style  = {hpb/callout, align=left},
+  ]
+  \pgfplotsset{
+    mx/common/.style = {
+      width=13.2cm, scale only axis, xmin=0, xmax=17,
+      axis line style={draw=hpbDiscInk, line width=0.6pt},
+      tick style={draw=hpbDiscInk, line width=0.6pt},
+      tick label style={font=\sffamily\fontsize{7}{8.4}\selectfont, text=hpbInk},
+      label style={font=\sffamily\fontsize{7}{8.4}\selectfont, text=hpbInk},
+      xtick={1,5,10,16},
+      xmajorgrids, major x grid style={draw=hpbDiscInk, line width=0.5pt,
+        dash pattern=on 2pt off 2pt},
+      clip=false, axis on top=false,
+    },
+  }
+  % ------------------------------------------------------------------ (a)
+  \begin{axis}[mx/common, name=wip, height=3.3cm,
+      ymin=0, ymax=4.3, ytick={0,1,2,3}, xticklabels={},
+      ymajorgrids, major y grid style={draw=hpbGuide, line width=0.4pt},
+      ylabel={open branches $|W_\theta(t)|$},
+      stack plots=y, const plot mark left,
+      every axis plot/.append style={draw=hpbInk, line width=0.8pt, mark=none},
+      area legend,
+      reverse legend,
+      legend style={draw=none, fill=white, fill opacity=0.85, text opacity=1,
+        at={(0.008,0.975)}, anchor=north west, inner sep=1pt,
+        legend cell align=left, row sep=-1pt,
+        font=\sffamily\fontsize{7}{8.4}\selectfont, text=hpbInk},
+    ]
+    % stacked bottom-to-top as in the diagram: T (lane -2), X (lane -1), I (lane +1)
+    \addplot[fill=hpbTask] coordinates {
+      (0,0)(1,0)(2,0)(3,0)(4,0)(5,0)(6,0)(7,1)(8,1)(9,1)(10,1)(11,1)(12,1)
+      (13,1)(14,1)(15,1)(16,0)(17,0)} \closedcycle;
+    \addplot[fill=hpbIss] coordinates {
+      (0,0)(1,0)(2,1)(3,1)(4,1)(5,0)(6,1)(7,1)(8,1)(9,1)(10,0)(11,0)(12,1)
+      (13,1)(14,1)(15,1)(16,0)(17,0)} \closedcycle;
+    \addplot[fill=hpbImp] coordinates {
+      (0,0)(1,0)(2,0)(3,1)(4,1)(5,1)(6,1)(7,1)(8,1)(9,1)(10,0)(11,1)(12,1)
+      (13,1)(14,1)(15,1)(16,0)(17,0)} \closedcycle;
+    \legend{Task (T), Issue (X), Improvement (I)}
+    % type letters inside the bands: the stack is readable without color
+    \foreach \c/\y/\l in {12.5/0.5/T, 3/0.5/X, 12.5/1.5/X,
+                          4/1.5/I, 12.5/2.5/I}{
+      \edef\mxtmp{\noexpand\node[font=\noexpand\sffamily\noexpand\bfseries
+        \noexpand\fontsize{7}{8.4}\noexpand\selectfont, text=hpbInk,
+        inner sep=0pt] at (axis cs:\c,\y) {\l};}\mxtmp
+    }
+    % baseline tags above the panel
+    \foreach \c/\v in {1/v1.0, 5/v1.0.1, 10/v1.1, 16/v1.2}{
+      \edef\mxtmp{\noexpand\node[hpb/tag, anchor=south, yshift=3pt]
+        at (axis cs:\c,4.3) {\v};}\mxtmp
+    }
+    % annotations
+    \draw[hpb/leader] (axis cs:9.7,2.2) |- (axis cs:8.6,3.72)
+      node[mx/ann, anchor=east]
+      {release of v1.1: I-21 and X-102\\close together ($|C|=2$)};
+    \draw[hpb/leader] (axis cs:15.7,2.2) |- (axis cs:15.1,3.72)
+      node[mx/ann, anchor=east]
+      {batch merge at v1.2:\\three branches close ($|C|=3$)};
+  \end{axis}
+  % ------------------------------------------------------------------ (b)
+  \begin{axis}[mx/common, at={(wip.south west)}, anchor=north west,
+      yshift=-0.55cm, height=3.6cm,
+      ymin=0.4, ymax=6.6, ytick={1,...,6}, y dir=reverse,
+      yticklabels={I-21, I-22, X-101, X-102, X-103, T-8},
+      y tick label style={font=\sffamily\bfseries\fontsize{7}{8.4}\selectfont},
+      major y tick style={draw=none},
+      xticklabels={Jan, Feb, Apr, Jul},
+      xlabel={ordinal time (one column per event; calendar month of each baseline)},
+      ylabel={branch},
+    ]
+    % one bar per branch: from opening t_o(b) (start node) to closing t_c(b)
+    % (release of the merge baseline);  #1 row, #2 type color, #3 letter,
+    % #4 t_o column, #5 t_c column, #6 fork -> merge baseline, #7 D(b)
+    \foreach \r/\tc/\tl/\o/\e/\fm/\dd in {
+        1/hpbImp/I/3/10/{v1.0 $\to$ v1.1}/2,
+        2/hpbImp/I/11/16/{v1.1 $\to$ v1.2}/1,
+        3/hpbIss/X/2/5/{v1.0 $\to$ v1.0.1}/1,
+        4/hpbIss/X/6/10/{v1.0.1 $\to$ v1.1}/1,
+        5/hpbIss/X/12/16/{v1.1 $\to$ v1.2}/1,
+        6/hpbTask/T/7/16/{v1.0.1 $\to$ v1.2}/2}{
+      \edef\mxtmp{%
+        \noexpand\draw[mx/bar, fill=\tc!55]
+          (axis cs:\o,\r-0.27) rectangle (axis cs:\e,\r+0.27);
+        \noexpand\node[hpb/event, fill=\tc] at (axis cs:\o,\r) {\tl};
+        \noexpand\node[mx/in, anchor=west] at (axis cs:\o,\r) [xshift=9pt]
+          {\unexpanded\expandafter{\fm}};
+        \noexpand\node[mx/in, font=\noexpand\sffamily\noexpand\bfseries
+          \noexpand\fontsize{7}{8.4}\noexpand\selectfont]
+          at (axis cs:17.55,\r) {\dd};}%
+      \mxtmp
+    }
+    \node[mx/in, font=\sffamily\bfseries\fontsize{7}{8.4}\selectfont]
+      at (axis cs:17.55,0.4) [anchor=south, yshift=1pt] {$D(b)$};
+  \end{axis}
+  % panel letters
+  \node[font=\sffamily\bfseries\fontsize{7.5}{9}\selectfont, anchor=north east]
+    at ([xshift=-1.15cm]wip.north west) {(a)};
+  \node[font=\sffamily\bfseries\fontsize{7.5}{9}\selectfont, anchor=north east]
+    at ([xshift=-1.15cm,yshift=-0.55cm]wip.south west) {(b)};
+\end{tikzpicture}}
+\caption{Flow metrics read straight from the graph, for the data of
+situation~A (\cref{fig:software-line}) on the same ordinal columns. (a)~Work
+in progress per type: each opening raises a step, each closure lowers it, and
+a release drops it by its batch size $|C(v)|$. (b)~One bar per branch, from
+its opening to the release that closed it, with its fork and merge versions
+and its merge distance $D(b)$. Lead times in calendar time come from the
+event dates, not from the length of the bars.}
+\label{fig:metrics}
+\end{figure}

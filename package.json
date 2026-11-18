@@ -1,0 +1,42 @@
+{
+  "name": "hpb",
+  "private": true,
+  "version": "0.0.0",
+  "description": "HPB Markup: text-to-diagram toolkit for Horizontal Product Branch (HPB) diagrams",
+  "license": "MIT",
+  "author": "Achraf Bouchtarouif El Khiat <achrafbouchtarouif@gmail.com>",
+  "homepage": "https://github.com/AchrafBr1/hpb#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AchrafBr1/hpb.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AchrafBr1/hpb/issues"
+  },
+  "keywords": [
+    "hpb",
+    "horizontal-product-branch",
+    "diagram",
+    "text-to-diagram",
+    "svg",
+    "product-management",
+    "roadmap",
+    "release-planning"
+  ],
+  "packageManager": "pnpm@9.15.2",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "release:check": "node scripts/check-release.mjs"
+  },
+  "devDependencies": {
+    "typescript": "5.6.3",
+    "tsup": "8.3.5",
+    "vitest": "2.1.8",
+    "@types/node": "20.17.10"
+  }
+}

@@ -1,0 +1,723 @@
+%% =====================================================================
+%%  hpb.sty -- Horizontal Product Branch (HPB) graphical notation for TikZ
+%%  Version 1.1 (2026/11/17)
+%%
+%%  Copyright (c) 2026 Achraf Bouchtarouif El Khiat
+%%  SPDX-License-Identifier: MIT
+%%  Permission is hereby granted, free of charge, to any person obtaining a
+%%  copy of this file, to deal in it without restriction, including the
+%%  rights to use, copy, modify, merge, publish, distribute, sublicense and/or
+%%  sell copies, subject to inclusion of this notice. THE FILE IS PROVIDED
+%%  "AS IS", WITHOUT WARRANTY OF ANY KIND (full text: opensource.org/license/mit).
+%%
+%%  Purpose
+%%  -------
+%%  Draws HPB diagrams (product lines, baselines, typed branches, merges,
+%%  discards, line forks, gates) with one fixed visual vocabulary, so that
+%%  every practitioner renders HPB the same way. Works with pdfLaTeX,
+%%  XeLaTeX and LuaLaTeX; no shell escape, no external files.
+%%
+%%  Coordinate system
+%%  -----------------
+%%  Inside the environment  hpbgraph  the TikZ unit vectors are
+%%      x = 1 column  (key  col,  default 1.1cm)  -- ordinal time
+%%      y = 1 lane    (key  lane, default 1.0cm)  -- 0 = main line,
+%%                                                   +1,+2 above, -1,-2 below
+%%  (version tags are anchored 5.5pt above their node, so the tag arrow has
+%%  the same length for every node shape; lane = 1.0cm is the smallest value
+%%  that keeps a tag clear of a branch running on lane +1),
+%%  so every macro takes plain numbers  (col,lane)  and every position in a
+%%  diagram is derived from the two keys  col  and  lane.  Glyph sizes are
+%%  fixed (in pt) by the HPB notation standard so that symbols look the same
+%%  in every figure; only spacing scales.
+%%
+%%  Layers (bottom to top, six in total):  background (gate and bundle bands)
+%%  < hpbguide (lane guides, NOW, leaders) < hpbbranch (branch paths and
+%%  connectors) < hpbline (main lines, streams, line forks) < main (nodes)
+%%  < hpbfront (tags, labels, badges, callout boxes).
+%%  All macros must therefore be used inside  \begin{hpbgraph} ... \end{hpbgraph}.
+%%
+%%  The full user documentation (every macro, its arguments and examples)
+%%  is in the paper's Appendix B and in hpb-api.md.  Public interface summary:
+%%
+%%   \hpbset{<keys>}                                    global defaults
+%%   \begin{hpbgraph}[col=..,lane=..,legend=..,<tikz>]  the canvas
+%%   \hpblane{<lane>}{<type>}{<label>}{<from>}{<to>}    lane guide + legend box
+%%   \hpbmainline[*]{<from>}{<to>}[<y>]                 main line (* = planned, dashed)
+%%   \hpborigin{<col>}{<label>}[<y>]                    creation of a reference (not a baseline)
+%%   \hpbrelease[<caption>]{<col>}{<name>}[<y>]         released baseline + tag
+%%   \hpbplanned[*][<caption>]{<col>}{<name>}{<date>}[<y>]  planned baseline (* = overdue)
+%%   \hpbhardware[<caption>]{<col>}{<name>}[<y>]        hardware baseline (diamond)
+%%   \hpbprocess[<caption>]{<col>}{<name>}[<y>]         process baseline (square)
+%%   \hpbstream[*][<off>]{<forkcol>}{<y>}{<tocol>}[<fromy>]  release stream (maintenance)
+%%   \hpbmilestone{<col>}{<label>}[<y>]                 life-cycle milestone tick
+%%   \hpbbranch[<keys>]{<type>}{<forkcol>}{<lane>}{<startcol>}{<endcol>}{<end>}{<mergecol>}
+%%   \hpbtarget[<keys>]{<fromcol>}{<lane>}{<mergecol>}  extra dashed target (re-targeting)
+%%   \hpbstart{<type>}{<col>}{<lane>}{<letter>}         start node with type letter
+%%   \hpbnode{<type>}{<col>}{<lane>}                    plain event node
+%%   \hpbterminal{<kind>}{<type>}{<col>}{<lane>}        merge / discard / open terminal
+%%   \hpbstep{<type>}{<col>}{<lane>}{done|todo|pass|fail}
+%%   \hpbpoststep{<type>}{<fromcol>}{<col>}{<lane>}{<state>}  post-closure step
+%%   \hpbdepends[<tikz>]{<x,y>}{<x,y>}{<label>}          dependency connector
+%%   \hpbpropagates[<tikz>]{<x,y>}{<x,y>}{<label>}       propagation (port) connector
+%%   \hpblabel[<pos>]{<col>}{<lane>}{<text>}            branch label with white halo
+%%   \hpbnow{<col>}{<lanetop>}{<lanebottom>}            NOW marker
+%%   \hpbcollapsed{<col>}{<count>}[<y>]                 count badge (collapsed history)
+%%   \hpbeos{<col>}[<y>]                                end-of-support bar
+%%   \hpblinefork{<col>}{<fromy>}{<toy>}                line-fork connector
+%%   \hpbgate[<right>]{<col>}{<lanetop>}{<lanebottom>}{<label>}  gate band
+%%   \hpbbundle{<x1,y1>}{<x2,y2>}{<label>}              launch bundle (cross-line gate)
+%%   \hpbseparator{<y>}{<from>}{<to>}                   rule between two product lines
+%%   \hpbfit{<picture>}                                 scale down to \linewidth only if wider
+%%   \hpbcallout[<tikz>]{<x,y>}{<text>}{<x,y>}          annotation with leader line
+%%   (the leader ends without a dot; route it so that it never crosses a
+%%   label or a branch other than the one it points to)
+%%   \hpbaxis{<from>}{<to>}{<y>}, \hpbtick{<col>}{<text>}{<y>}   ordinal time axis
+%% =====================================================================
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{hpb}[2026/11/17 v1.1 Horizontal Product Branch (HPB) notation]
+
+\RequirePackage{xparse}% \NewDocumentCommand (built into LaTeX >= 2020-10)
+\RequirePackage{xcolor}
+\RequirePackage{graphicx}% \resizebox in \hpbfit
+\RequirePackage{tikz}
+\usetikzlibrary{positioning,calc,shapes.geometric,arrows.meta,%
+  decorations.pathmorphing,backgrounds,fit}
+
+%% ---------------------------------------------------------------------
+%% 1. Color palette (soft fills, one dark ink).  Names are part of the API.
+%% ---------------------------------------------------------------------
+\definecolor{hpbInk}{HTML}{374151}   % outlines, paths, text
+\definecolor{hpbMain}{HTML}{BAE6FD}  % released baselines, tags
+\definecolor{hpbImp}{HTML}{C4B5FD}   % I  improvement (violet)
+\definecolor{hpbIss}{HTML}{FB8A6E}   % X  issue / defect (coral)
+\definecolor{hpbTask}{HTML}{6EE7B7}  % T  task (green)
+\definecolor{hpbLab}{HTML}{5EEAD4}   % L  laboratory evolution (teal)
+\definecolor{hpbHw}{HTML}{A5B4FC}    % hardware baseline (indigo)
+\definecolor{hpbDisc}{HTML}{E5E7EB}  % discarded fill (gray)
+\definecolor{hpbNow}{HTML}{0EA5E9}   % NOW marker (sky)
+\definecolor{hpbGuide}{HTML}{D1D5DB} % dotted lane guides
+\definecolor{hpbLate}{HTML}{DC2626}  % overdue planned baseline, failed test
+% auxiliary tones (also public)
+\definecolor{hpbMuted}{HTML}{6B7280} % secondary text, callout leaders
+\definecolor{hpbDiscInk}{HTML}{9CA3AF}% discarded path, callout frames
+\definecolor{hpbPass}{HTML}{059669}  % passed test step
+\definecolor{hpbHwInk}{HTML}{3730A3} % hardware caption text
+
+%% ---------------------------------------------------------------------
+%% 2. Branch types: <key> -> color, letter.  Aliases I, X, T, L accepted.
+%%    Pseudo-types main, hw and disc are valid for legend boxes and nodes.
+%% ---------------------------------------------------------------------
+\newcommand\hpb@deftype[3]{%
+  \expandafter\def\csname hpb@tcol@#1\endcsname{#2}%
+  \expandafter\def\csname hpb@tlet@#1\endcsname{#3}}
+\hpb@deftype{imp}{hpbImp}{I}   \hpb@deftype{I}{hpbImp}{I}
+\hpb@deftype{iss}{hpbIss}{X}   \hpb@deftype{X}{hpbIss}{X}
+\hpb@deftype{task}{hpbTask}{T} \hpb@deftype{T}{hpbTask}{T}
+\hpb@deftype{lab}{hpbLab}{L}   \hpb@deftype{L}{hpbLab}{L}
+\hpb@deftype{main}{hpbMain}{}  \hpb@deftype{hw}{hpbHw}{}
+\hpb@deftype{disc}{hpbDisc}{}
+% \hpb@settype{<type>} -> \hpb@tc (color name), \hpb@tl (letter)
+\newcommand\hpb@settype[1]{%
+  \ifcsname hpb@tcol@#1\endcsname
+    \edef\hpb@tc{\csname hpb@tcol@#1\endcsname}%
+    \edef\hpb@tl{\csname hpb@tlet@#1\endcsname}%
+  \else
+    \PackageError{hpb}{Unknown HPB type `#1'}%
+      {Valid types: imp, iss, task, lab (or I, X, T, L); main, hw, disc.}%
+    \def\hpb@tc{hpbInk}\def\hpb@tl{?}%
+  \fi}
+
+%% ---------------------------------------------------------------------
+%% 3. Fonts (sans serif, sizes chosen to stay >= 6pt after mild scaling)
+%% ---------------------------------------------------------------------
+\newcommand\hpb@fs{\sffamily\fontsize{6.5}{7.5}\selectfont}            % small
+\newcommand\hpb@fsb{\sffamily\bfseries\fontsize{6.5}{7.5}\selectfont}  % small bold
+\newcommand\hpb@fm{\sffamily\fontsize{7}{8.4}\selectfont}              % medium
+\newcommand\hpb@fmb{\sffamily\bfseries\fontsize{7}{8.4}\selectfont}    % medium bold
+
+%% ---------------------------------------------------------------------
+%% 4. Keys: geometry of the canvas
+%% ---------------------------------------------------------------------
+\newlength\hpb@colL   \setlength\hpb@colL{1.1cm}   % one ordinal column
+\newlength\hpb@laneL  \setlength\hpb@laneL{1.0cm}  % one lane
+\newlength\hpb@legendL\setlength\hpb@legendL{2.3cm}% legend / origin box width
+\def\hpb@extra{}                                   % extra TikZ options
+\def\hpb@novalue{\pgfkeysnovalue}
+\long\def\hpb@addextra#1#2{% collect unknown keys and pass them to TikZ
+  \def\hpb@tmp{#2}%
+  \ifx\hpb@tmp\hpb@novalue
+    \expandafter\def\expandafter\hpb@extra\expandafter{\hpb@extra#1,}%
+  \else
+    \expandafter\def\expandafter\hpb@extra\expandafter{\hpb@extra#1={#2},}%
+  \fi}
+\pgfkeys{/hpb/graph/.is family, /hpb/graph,
+  col/.code    = {\setlength\hpb@colL{#1}},
+  lane/.code   = {\setlength\hpb@laneL{#1}},
+  legend/.code = {\setlength\hpb@legendL{#1}},
+  .unknown/.code = {\expandafter\hpb@addextra\expandafter{\pgfkeyscurrentname}{#1}},
+}
+\newcommand\hpbset[1]{\pgfqkeys{/hpb/graph}{#1}}
+
+%% Gap between the top of a baseline node and the bottom of its tag (fixed, so
+%% that the tag arrow has the same length for every node shape and lane value)
+\newcommand\hpb@taggap{5.5pt}
+
+%% ---------------------------------------------------------------------
+%% 5. Layers and the hpbgraph environment
+%% ---------------------------------------------------------------------
+\pgfdeclarelayer{background}
+\pgfdeclarelayer{hpbguide}
+\pgfdeclarelayer{hpbbranch}
+\pgfdeclarelayer{hpbline}
+\pgfdeclarelayer{hpbfront}
+\newenvironment{hpbgraph}[1][]{%
+  \pgfqkeys{/hpb/graph}{#1}%
+  \edef\hpb@opts{x=\the\hpb@colL,y=\the\hpb@laneL,%
+    \unexpanded\expandafter{\hpb@extra}}%
+  \expandafter\tikzpicture\expandafter[\hpb@opts]%
+  \pgfsetlayers{background,hpbguide,hpbbranch,hpbline,main,hpbfront}%
+}{\endtikzpicture}
+
+%% ---------------------------------------------------------------------
+%% 6. Styles.  Stroke widths: main line 3pt, branch 2pt, node outline 1.6pt,
+%%    tag 1pt, legend 0.8pt, leaders 0.6pt.  Corner radius of paths 8pt.
+%% ---------------------------------------------------------------------
+\tikzset{
+  hpb/main line/.style  = {draw=hpbInk, line width=3pt, line cap=butt},
+  hpb/plan line/.style  = {line cap=butt, dash pattern=on 6pt off 4pt,
+                           dash phase=6pt},% starts with a gap at NOW
+  hpb/stream/.style     = {draw=hpbInk, line width=3pt, line cap=butt,
+                           rounded corners=8pt},
+  hpb/guide/.style      = {draw=hpbGuide, line width=1.5pt, line cap=round,
+                           dash pattern=on 0pt off 4.5pt},
+  hpb/path/.style       = {draw=hpbInk, line width=2pt, rounded corners=8pt,
+                           line cap=round, line join=round},
+  hpb/path discard/.style = {draw=hpbDiscInk},
+  hpb/path target/.style  = {line width=1.6pt, line cap=butt,
+                             dash pattern=on 4pt off 3pt},
+  hpb/event/.style      = {circle, minimum size=14pt, inner sep=0pt,
+                           draw=hpbInk, line width=1.6pt, font=\hpb@fmb,
+                           text=hpbInk},
+  hpb/step/.style       = {circle, minimum size=8pt, inner sep=0pt,
+                           draw=hpbInk, line width=1.2pt},
+  hpb/head ring/.style  = {circle, minimum size=21pt, inner sep=0pt,
+                           line width=1.6pt},
+  hpb/baseline/.style   = {circle, minimum size=18pt, inner sep=0pt,
+                           fill=hpbMain, draw=hpbInk, line width=1.6pt},
+  hpb/planned/.style    = {circle, minimum size=18pt, inner sep=0pt,
+                           fill=white, draw=hpbInk, line width=1.4pt,
+                           dash pattern=on 2.6pt off 1.8pt},
+  hpb/hardware/.style   = {diamond, minimum size=22pt, inner sep=0pt,
+                           aspect=1, fill=hpbHw, draw=hpbInk, line width=1.6pt},
+  hpb/origin/.style     = {circle, minimum size=9pt, inner sep=0pt, fill=hpbInk},
+  hpb/process/.style    = {rectangle, minimum size=15pt, inner sep=0pt,
+                           fill=hpbMain, draw=hpbInk, line width=1.6pt},
+  hpb/overdue/.style    = {circle, fill=hpbLate, text=white, font=\hpb@fsb,
+                           minimum size=9pt, inner sep=0pt},
+  hpb/tag/.style        = {rectangle, draw=hpbInk, line width=1pt, fill=hpbMain,
+                           inner xsep=2pt, inner ysep=1.7pt,
+                           text height=4.9pt, text depth=0.6pt,
+                           font=\hpb@fsb, text=hpbInk},
+  hpb/tag planned/.style= {fill=white, dash pattern=on 2pt off 1.4pt},
+  hpb/tag late/.style   = {draw=hpbLate, line width=1.2pt},
+  hpb/tag arrow/.style  = {draw=hpbInk, line width=0.9pt,
+                           -{Stealth[length=3.2pt,width=3.6pt]},
+                           shorten >=0.9pt},
+  hpb/legend/.style     = {rectangle, rounded corners=2pt, draw=hpbInk,
+                           line width=0.8pt, font=\hpb@fmb, text=hpbInk,
+                           minimum width=\hpb@legendL, minimum height=12pt,
+                           inner xsep=3pt, inner ysep=1.5pt, align=center},
+  hpb/label/.style      = {font=\hpb@fs, text=hpbInk, fill=white,
+                           fill opacity=0.85, text opacity=1, inner sep=1pt,
+                           rounded corners=1pt, align=left},
+  hpb/label above/.style       = {anchor=south west, xshift=-4pt, yshift=8.5pt},
+  hpb/label below/.style       = {anchor=north west, xshift=-4pt, yshift=-8.5pt},
+  hpb/label right/.style       = {anchor=west, xshift=10pt},
+  hpb/label left/.style        = {anchor=east, xshift=-10pt},
+  hpb/label above left/.style  = {anchor=south east, xshift=4pt, yshift=8.5pt},
+  hpb/label below left/.style  = {anchor=north east, xshift=4pt, yshift=-8.5pt},
+  hpb/label above center/.style= {anchor=south, yshift=8.5pt},
+  hpb/label below center/.style= {anchor=north, yshift=-8.5pt},
+  hpb/date/.style       = {font=\hpb@fs\itshape, text=hpbMuted, inner sep=1pt,
+                           fill=white, fill opacity=0.85, text opacity=1},
+  hpb/badge/.style      = {circle, fill=hpbInk, text=white, font=\hpb@fsb,
+                           minimum size=10.5pt, inner sep=0.3pt},
+  hpb/now/.style        = {draw=hpbNow, line width=1.2pt,
+                           dash pattern=on 4pt off 2.5pt},
+  hpb/now label/.style  = {fill=hpbNow, text=white, font=\hpb@fsb,
+                           rounded corners=1.5pt, inner xsep=2.5pt,
+                           inner ysep=1.5pt, anchor=south},
+  hpb/fork line/.style  = {draw=hpbInk, line width=3pt, line cap=round},
+  hpb/eos/.style        = {draw=hpbInk, line width=3pt, line cap=butt},
+  hpb/callout/.style    = {font=\hpb@fs, text=hpbInk, fill=white,
+                           draw=hpbDiscInk, line width=0.5pt, rounded corners=2pt,
+                           inner xsep=2.5pt, inner ysep=1.8pt, align=center},
+  hpb/leader/.style     = {draw=hpbMuted, line width=0.6pt},
+  hpb/gate/.style       = {draw=hpbMuted, line width=0.6pt, fill=hpbMain,
+                           fill opacity=0.22, draw opacity=1, rounded corners=4pt},
+  hpb/bundle/.style     = {draw=hpbMuted, line width=0.9pt, rounded corners=6pt,
+                           dash pattern=on 5pt off 1.5pt on 1pt off 1.5pt},
+  hpb/depends/.style    = {draw=hpbInk, line width=0.9pt, line cap=round,
+                           dash pattern=on 0.1pt off 2.2pt,
+                           -{Stealth[open,length=4.5pt,width=4.5pt,line width=0.8pt]},
+                           shorten >=8pt, shorten <=8pt},
+  hpb/propagates/.style = {draw=hpbInk, line width=0.9pt, line cap=butt,
+                           dash pattern=on 3.5pt off 2pt,
+                           -{Stealth[length=4.5pt,width=4.5pt]},
+                           shorten >=8pt, shorten <=8pt},
+  hpb/conn label/.style = {font=\hpb@fs\itshape, text=hpbInk, fill=white,
+                           fill opacity=0.85, text opacity=1, inner sep=1pt},
+  hpb/post/.style       = {draw=hpbInk, line width=0.9pt, line cap=round,
+                           dash pattern=on 0.1pt off 2.2pt},
+  hpb/milestone/.style  = {draw=hpbInk, line width=1.2pt, line cap=butt},
+  hpb/separator/.style  = {draw=hpbGuide, line width=0.8pt},
+  hpb/axis/.style       = {draw=hpbDiscInk, line width=0.6pt},
+  hpb/@fade/.style      = {},
+}
+
+%% ---------------------------------------------------------------------
+%% 7. Small internal glyphs: check mark and cross centered at (#1,#2)
+%%    #3 = color, #4 = additional shift (e.g. yshift=9pt), #5 = size factor
+%% ---------------------------------------------------------------------
+\newcommand\hpb@check[5]{%
+  \draw[shift={(#1,#2)}, #4, scale=#5, draw=#3, line width=1.3pt,
+        line cap=round, line join=round, hpb/@fade]
+    (-2.6pt,0.1pt) -- (-0.8pt,-1.9pt) -- (2.7pt,2.3pt);}
+\newcommand\hpb@cross[5]{%
+  \draw[shift={(#1,#2)}, #4, scale=#5, draw=#3, line width=1.3pt,
+        line cap=round, hpb/@fade]
+    (-2.2pt,-2.2pt) -- (2.2pt,2.2pt) (-2.2pt,2.2pt) -- (2.2pt,-2.2pt);}
+\newcommand\hpb@ifempty[3]{\if\relax\detokenize{#1}\relax#2\else#3\fi}
+
+%% ---------------------------------------------------------------------
+%% 8. Lines, lanes, baselines
+%% ---------------------------------------------------------------------
+% \hpblane{<lane>}{<type>}{<label>}{<fromcol>}{<tocol>}
+\NewDocumentCommand\hpblane{m m m m m}{%
+  \hpb@settype{#2}%
+  \begin{pgfonlayer}{hpbguide}
+    \draw[hpb/guide] (#4,#1) -- (#5,#1);
+  \end{pgfonlayer}
+  \node[hpb/legend, fill=\hpb@tc, anchor=east] at ([xshift=-10pt]#4,#1) {#3};}
+
+% \hpbmainline{<from>}{<to>}[<y>]   ;  \hpbmainline*{...} = planned (dashed)
+\NewDocumentCommand\hpbmainline{s m m O{0}}{%
+  \begin{pgfonlayer}{hpbline}
+    \IfBooleanTF{#1}%
+      {\draw[hpb/main line, hpb/plan line] (#2,#4) -- (#3,#4);}%
+      {\draw[hpb/main line] (#2,#4) -- (#3,#4);}%
+  \end{pgfonlayer}}
+
+% \hpborigin{<col>}{<label>}[<y>]   creation of a reference: the dot marks
+% where the line starts; it is NOT a baseline (the first baseline is v0(P)).
+\NewDocumentCommand\hpborigin{m m O{0}}{%
+  \node[hpb/origin] at (#1,#3) {};
+  \node[hpb/legend, fill=hpbMain, anchor=east] at ([xshift=-10pt]#1,#3) {#2};}
+
+% internal: tag above a baseline node named hpb@n; #1 col, #2 y, #3 text,
+% #4 extra tag style
+\newcommand\hpb@tag[4]{%
+  \begin{pgfonlayer}{hpbfront}
+    \node[hpb/tag, #4, anchor=south] (hpb@t)
+      at ([yshift=\hpb@taggap]hpb@n.north) {#3};
+    \draw[hpb/tag arrow] (hpb@t.south) -- (hpb@n.north);
+  \end{pgfonlayer}}
+% internal: italic caption (color #1, text #2) to the right of the last tag
+\newcommand\hpb@caption[2]{%
+  \hpb@ifempty{#2}{}{%
+    \begin{pgfonlayer}{hpbfront}
+      \node[font=\hpb@fs\itshape, text=#1, anchor=west, inner sep=1pt,
+            fill=white, fill opacity=0.85, text opacity=1]
+        at ([xshift=1.5pt]hpb@t.east) {#2};
+    \end{pgfonlayer}}}
+
+% \hpbrelease[<caption>]{<col>}{<name>}[<y>]
+%   optional caption right of the tag, e.g. the applies-to set of a shared
+%   firmware baseline: \hpbrelease[applies to Rev A, B]{3}{v2.0}
+\NewDocumentCommand\hpbrelease{O{} m m O{0}}{%
+  \node[hpb/baseline] (hpb@n) at (#2,#4) {};
+  \hpb@tag{#2}{#4}{#3}{}%
+  \hpb@caption{hpbMuted}{#1}}
+
+% \hpbplanned[*][<caption>]{<col>}{<name>}{<date>}[<y>]
+%   * = overdue: red tag outline and date PLUS a "!" badge left of the tag
+%   (shape channel, so that overdue is never signaled by color alone)
+%   <caption> is printed under the target date (e.g. an applies-to set)
+\NewDocumentCommand\hpbplanned{s O{} m m m O{0}}{%
+  \node[hpb/planned] (hpb@n) at (#3,#6) {};
+  \IfBooleanTF{#1}%
+    {\hpb@tag{#3}{#6}{#4}{hpb/tag planned, hpb/tag late}%
+     \tikzset{hpb/@dc/.style={text=hpbLate}}%
+     \begin{pgfonlayer}{hpbfront}
+       \node[hpb/overdue, anchor=east] at ([xshift=-1.5pt]hpb@t.west) {!};
+     \end{pgfonlayer}}%
+    {\hpb@tag{#3}{#6}{#4}{hpb/tag planned}%
+     \tikzset{hpb/@dc/.style={}}}%
+  % target date to the right of the tag (never crossed by incoming branches)
+  \begin{pgfonlayer}{hpbfront}
+    \node[hpb/date, hpb/@dc, anchor=west] (hpb@d) at ([xshift=1.5pt]hpb@t.east) {#5};
+    \hpb@ifempty{#2}{}{%
+      \node[font=\hpb@fs\itshape, text=hpbMuted, anchor=north west,
+            inner sep=1pt] at (hpb@d.south west) {#2};}%
+  \end{pgfonlayer}}
+
+% \hpbprocess[<caption>]{<col>}{<name>}[<y>]   default caption "process"
+%   baseline of kind other used for a process / manufacturing change: square
+\NewDocumentCommand\hpbprocess{O{process} m m O{0}}{%
+  \node[hpb/process] (hpb@n) at (#2,#4) {};
+  \hpb@tag{#2}{#4}{#3}{}%
+  \hpb@caption{hpbMuted}{#1}}
+
+% \hpbhardware[<caption>]{<col>}{<name>}[<y>]   default caption "new ref."
+\NewDocumentCommand\hpbhardware{O{new ref.} m m O{0}}{%
+  \node[hpb/hardware] (hpb@n) at (#2,#4) {};
+  \hpb@tag{#2}{#4}{#3}{fill=hpbHw}%
+  \hpb@caption{hpbHwInk}{#1}}
+
+% \hpbcollapsed{<col>}{<count>}[<y>]
+\NewDocumentCommand\hpbcollapsed{m m O{0}}{%
+  \begin{pgfonlayer}{hpbfront}
+    % centered under the node: never crossed by forks/merges (offset +-col/2)
+    \node[hpb/badge] at ([yshift=-13pt]#1,#3) {#2};
+  \end{pgfonlayer}}
+
+% \hpbeos{<col>}[<y>]
+\NewDocumentCommand\hpbeos{m O{0}}{%
+  \begin{pgfonlayer}{hpbline}
+    \draw[hpb/eos] (#1,#2-0.3) -- (#1,#2+0.3);
+  \end{pgfonlayer}
+  \node[font=\hpb@fsb, text=hpbInk, anchor=west, inner sep=1pt]
+    at ([xshift=3pt]#1,#2) {EoS};}
+
+% \hpblinefork{<col>}{<fromy>}{<toy>}
+%   lineage connector: leaves the parent main line at the column of the
+%   hardware baseline h (i.e. after the parent baseline h was derived from)
+%   and ends at h, which is the first node of the child line.
+\NewDocumentCommand\hpblinefork{m m m}{%
+  \begin{pgfonlayer}{hpbline}
+    \draw[hpb/fork line] (#1,#2) -- (#1,#3);
+  \end{pgfonlayer}}
+
+% \hpbstream[*][<offset>]{<forkcol>}{<y>}{<tocol>}[<fromy>]
+%   release (maintenance) stream of the same product reference: leaves the
+%   released baseline at (forkcol,fromy) <offset> columns to its right
+%   (default 0.5) and runs on its own line y.  * = dashed (planned stream).
+%   Baselines of the stream are drawn with \hpbrelease / \hpbplanned at y.
+\NewDocumentCommand\hpbstream{s O{0.5} m m m O{0}}{%
+  \pgfmathsetmacro\hpb@xs{#3+#2}%
+  \begin{pgfonlayer}{hpbline}
+    \IfBooleanTF{#1}%
+      {\draw[hpb/stream, hpb/plan line] (#3,#6) -- (\hpb@xs,#6) -- (\hpb@xs,#4) -- (#5,#4);}%
+      {\draw[hpb/stream] (#3,#6) -- (\hpb@xs,#6) -- (\hpb@xs,#4) -- (#5,#4);}%
+  \end{pgfonlayer}}
+
+% \hpbmilestone{<col>}{<label>}[<y>]   life-cycle milestone of a line (end of
+%   sale, end of production, security only, ...): thin tick and italic label
+%   below the line.  The final milestone, end of service, is \hpbeos.
+\NewDocumentCommand\hpbmilestone{m m O{0}}{%
+  \begin{pgfonlayer}{hpbline}
+    \draw[hpb/milestone] (#1,#3-0.2) -- (#1,#3+0.2);
+  \end{pgfonlayer}
+  \begin{pgfonlayer}{hpbfront}
+    \node[font=\hpb@fs\itshape, text=hpbInk, anchor=north, inner sep=1pt,
+          fill=white, fill opacity=0.85, text opacity=1, align=center]
+      at ([yshift=-1pt]#1,#3-0.2) {#2};
+  \end{pgfonlayer}}
+
+%% ---------------------------------------------------------------------
+%% 9. Event glyphs
+%% ---------------------------------------------------------------------
+% \hpbstart{<type>}{<col>}{<lane>}{<letter>}
+\NewDocumentCommand\hpbstart{m m m m}{%
+  \hpb@settype{#1}%
+  \node[hpb/event, fill=\hpb@tc, hpb/@fade] at (#2,#3) {#4};}
+
+% \hpbnode{<type>}{<col>}{<lane>}
+\NewDocumentCommand\hpbnode{m m m}{%
+  \hpb@settype{#1}%
+  \node[hpb/event, fill=\hpb@tc, hpb/@fade] at (#2,#3) {};}
+
+% \hpbterminal{merge|discard|open}{<type>}{<col>}{<lane>}
+\expandafter\def\csname hpb@term@merge\endcsname#1#2{%
+  \node[hpb/event, fill=\hpb@tc, hpb/@fade] at (#1,#2) {};
+  \hpb@check{#1}{#2}{hpbInk}{}{1}}
+\expandafter\def\csname hpb@term@discard\endcsname#1#2{%
+  \node[hpb/event, fill=hpbDisc, draw=hpbMuted, hpb/@fade] at (#1,#2) {};
+  \hpb@cross{#1}{#2}{hpbInk}{}{1}}
+\expandafter\def\csname hpb@term@open\endcsname#1#2{%
+  \node[hpb/head ring, draw=\hpb@tc, hpb/@fade] at (#1,#2) {};
+  \node[hpb/event, fill=white, hpb/@fade] at (#1,#2) {};}
+\expandafter\let\csname hpb@term@target\expandafter\endcsname
+  \csname hpb@term@open\endcsname
+\expandafter\def\csname hpb@term@none\endcsname#1#2{}
+\NewDocumentCommand\hpbterminal{m m m m}{%
+  \hpb@settype{#2}%
+  \ifcsname hpb@term@#1\endcsname
+    \csname hpb@term@#1\endcsname{#3}{#4}%
+  \else
+    \PackageError{hpb}{Unknown terminal `#1'}{Use merge, discard, open, target or none.}%
+  \fi}
+
+% \hpbstep{<type>}{<col>}{<lane>}{done|todo|pass|fail}
+%   a "pass" step whose evidence references a candidate build of the target
+%   baseline is the verification step that makes a targeted branch ready
+\expandafter\def\csname hpb@step@done\endcsname#1#2{%
+  \node[hpb/step, fill=\hpb@tc] at (#1,#2) {};}
+\expandafter\def\csname hpb@step@todo\endcsname#1#2{%
+  \node[hpb/step, fill=white] at (#1,#2) {};}
+\expandafter\def\csname hpb@step@pass\endcsname#1#2{%
+  \node[hpb/step, fill=\hpb@tc] at (#1,#2) {};
+  \begin{pgfonlayer}{hpbfront}\hpb@check{#1}{#2}{hpbPass}{yshift=-9pt}{1}\end{pgfonlayer}}
+\expandafter\def\csname hpb@step@fail\endcsname#1#2{%
+  \node[hpb/step, fill=\hpb@tc] at (#1,#2) {};
+  \begin{pgfonlayer}{hpbfront}\hpb@cross{#1}{#2}{hpbLate}{yshift=-9pt}{0.9}\end{pgfonlayer}}
+\NewDocumentCommand\hpbstep{m m m m}{%
+  \hpb@settype{#1}%
+  \ifcsname hpb@step@#4\endcsname
+    \csname hpb@step@#4\endcsname{#2}{#3}%
+  \else
+    \PackageError{hpb}{Unknown step state `#4'}{Use done, todo, pass or fail.}%
+  \fi}
+
+% \hpbpoststep{<type>}{<fromcol>}{<col>}{<lane>}{<state>}
+%   step recorded after closure (e.g. CAPA effectiveness check): thin dotted
+%   continuation on the lane from <fromcol> (where the merge path left the
+%   lane) to the step at <col>
+\NewDocumentCommand\hpbpoststep{m m m m m}{%
+  \begin{pgfonlayer}{hpbbranch}
+    \draw[hpb/post] (#2,#4) -- (#3,#4);
+  \end{pgfonlayer}
+  \hpbstep{#1}{#3}{#4}{#5}}
+
+% \hpblabel[<pos>]{<col>}{<lane>}{<text>}
+%   <pos> in {above (default), below, right, left, above left, below left,
+%            above center, below center}
+\NewDocumentCommand\hpblabel{O{above} m m m}{%
+  \begin{pgfonlayer}{hpbfront}
+    \node[hpb/label, hpb/label #1] at (#2,#3) {#4};
+  \end{pgfonlayer}}
+
+%% ---------------------------------------------------------------------
+%% 10. Branches
+%%  \hpbbranch[<keys>]{<type>}{<forkcol>}{<lane>}{<startcol>}{<endcol>}{<end>}{<mergecol>}
+%%  Path: from the fork baseline (forkcol, line) along the line to
+%%  forkcol+forkoff, vertical to <lane>, horizontal to <endcol>; then by <end>:
+%%    merge   -> check terminal at endcol, horizontal to mergecol-mergeoff,
+%%               vertical into the baseline at (mergecol, mergeline)
+%%    target  -> open head at endcol, DASHED continuation to the planned
+%%               baseline at (mergecol, mergeline)
+%%    open    -> open head at endcol (put endcol on the NOW column)
+%%    discard -> gray path, cross terminal at endcol (never rejoins the line)
+%%    none    -> path only, no terminal
+%%  The start node (with the type letter) is drawn at startcol automatically.
+%%  Constraints: forkcol+forkoff < startcol <= endcol < mergecol-mergeoff.
+%%  The vertical segments are offset from the baseline column (default half a
+%%  column) so that they never cross the version tag above the baseline.
+%%  When two branches leave (or enter) the same baseline on the same side,
+%%  give the branch on the FARTHER lane the SMALLER offset (nested corners,
+%%  no crossings).
+%% ---------------------------------------------------------------------
+\newif\ifhpb@start
+\def\hpb@abovekw{above}
+\pgfkeys{/hpb/branch/.is family, /hpb/branch,
+  line/.store in      = \hpb@line,      % y of the fork line (default 0)
+  mergeline/.store in = \hpb@mline,     % y of the merge line (default = line)
+  forkoff/.store in   = \hpb@foff,      % horizontal offset of the drop (cols)
+  mergeoff/.store in  = \hpb@moff,      % horizontal offset of the rise (cols)
+  letter/.store in    = \hpb@letter,    % letter in the start node
+  nostart/.code       = \hpb@startfalse,% do not draw the start node
+  label/.store in     = \hpb@blabel,    % label text placed at startcol
+  labelpos/.store in  = \hpb@blabelpos, % position keyword for that label
+  faded/.code         = {\tikzset{hpb/@fade/.style={opacity=0.35}}},
+}
+\newcommand\hpb@branchinit{%
+  \def\hpb@line{0}\def\hpb@mline{}\def\hpb@foff{0.5}\def\hpb@moff{0.5}%
+  \let\hpb@letter\hpb@tl \hpb@starttrue
+  \def\hpb@blabel{}\def\hpb@blabelpos{above}%
+  \tikzset{hpb/@fade/.style={}}}
+
+% internal end handlers: #1 forkcol #2 lane #3 endcol #4 mergecol
+\expandafter\def\csname hpb@end@merge\endcsname#1#2#3#4{%
+  \pgfmathsetmacro\hpb@xm{#4-\hpb@moff}%
+  \begin{pgfonlayer}{hpbbranch}
+    \draw[hpb/path, hpb/@fade] (#1,\hpb@line) -- (\hpb@xf,\hpb@line)
+      -- (\hpb@xf,#2) -- (\hpb@xm,#2) -- (\hpb@xm,\hpb@mline) -- (#4,\hpb@mline);
+  \end{pgfonlayer}
+  \csname hpb@term@merge\endcsname{#3}{#2}}
+\expandafter\def\csname hpb@end@target\endcsname#1#2#3#4{%
+  \pgfmathsetmacro\hpb@xm{#4-\hpb@moff}%
+  \begin{pgfonlayer}{hpbbranch}
+    \draw[hpb/path, hpb/@fade] (#1,\hpb@line) -- (\hpb@xf,\hpb@line)
+      -- (\hpb@xf,#2) -- (#3,#2);
+    \draw[hpb/path, hpb/path target, hpb/@fade] (#3,#2) -- (\hpb@xm,#2)
+      -- (\hpb@xm,\hpb@mline) -- (#4,\hpb@mline);
+  \end{pgfonlayer}
+  \csname hpb@term@open\endcsname{#3}{#2}}
+\expandafter\def\csname hpb@end@open\endcsname#1#2#3#4{%
+  \begin{pgfonlayer}{hpbbranch}
+    \draw[hpb/path, hpb/@fade] (#1,\hpb@line) -- (\hpb@xf,\hpb@line)
+      -- (\hpb@xf,#2) -- (#3,#2);
+  \end{pgfonlayer}
+  \csname hpb@term@open\endcsname{#3}{#2}}
+\expandafter\def\csname hpb@end@discard\endcsname#1#2#3#4{%
+  \begin{pgfonlayer}{hpbbranch}
+    \draw[hpb/path, hpb/path discard, hpb/@fade] (#1,\hpb@line)
+      -- (\hpb@xf,\hpb@line) -- (\hpb@xf,#2) -- (#3,#2);
+  \end{pgfonlayer}
+  \csname hpb@term@discard\endcsname{#3}{#2}}
+\expandafter\def\csname hpb@end@none\endcsname#1#2#3#4{%
+  \begin{pgfonlayer}{hpbbranch}
+    \draw[hpb/path, hpb/@fade] (#1,\hpb@line) -- (\hpb@xf,\hpb@line)
+      -- (\hpb@xf,#2) -- (#3,#2);
+  \end{pgfonlayer}}
+
+\NewDocumentCommand\hpbbranch{O{} m m m m m m m}{%
+  \begingroup
+  \hpb@settype{#2}%
+  \hpb@branchinit
+  \pgfqkeys{/hpb/branch}{#1}%
+  \ifx\hpb@mline\@empty\let\hpb@mline\hpb@line\fi
+  \pgfmathsetmacro\hpb@xf{#3+\hpb@foff}%
+  \ifcsname hpb@end@#7\endcsname
+    \csname hpb@end@#7\endcsname{#3}{#4}{#6}{#8}%
+  \else
+    \PackageError{hpb}{Unknown branch end `#7'}%
+      {Use merge, target, open, discard or none.}%
+  \fi
+  \ifhpb@start
+    \node[hpb/event, fill=\hpb@tc, hpb/@fade] at (#5,#4) {\hpb@letter};
+  \fi
+  \ifx\hpb@blabel\@empty\else
+    \ifx\hpb@blabelpos\hpb@abovekw\else
+      \PackageWarning{hpb}{Branch label placed `\hpb@blabelpos':
+        layout rule L6 places branch labels above the start node}%
+    \fi
+    \edef\hpb@tmp{\noexpand\tikzset{hpb/@lp/.style={hpb/label \hpb@blabelpos}}}%
+    \hpb@tmp
+    \begin{pgfonlayer}{hpbfront}
+      \node[hpb/label, hpb/@lp, hpb/@fade] at (#5,#4) {\hpb@blabel};
+    \end{pgfonlayer}%
+  \fi
+  \endgroup}
+
+% \hpbtarget[<keys>]{<fromcol>}{<lane>}{<mergecol>}
+%   Additional dashed targeted continuation (e.g. the faded former target of a
+%   re-targeted branch).  Keys: mergeline, mergeoff, faded.
+\NewDocumentCommand\hpbtarget{O{} m m m}{%
+  \begingroup
+  \def\hpb@tl{}\hpb@branchinit
+  \pgfqkeys{/hpb/branch}{#1}%
+  \ifx\hpb@mline\@empty\let\hpb@mline\hpb@line\fi
+  \pgfmathsetmacro\hpb@xm{#4-\hpb@moff}%
+  \begin{pgfonlayer}{hpbbranch}
+    \draw[hpb/path, hpb/path target, hpb/@fade] (#2,#3) -- (\hpb@xm,#3)
+      -- (\hpb@xm,\hpb@mline) -- (#4,\hpb@mline);
+  \end{pgfonlayer}
+  \endgroup}
+
+%% ---------------------------------------------------------------------
+%% 11. Markers and annotations
+%% ---------------------------------------------------------------------
+% \hpbnow{<col>}{<lanetop>}{<lanebottom>}
+\NewDocumentCommand\hpbnow{m m m}{%
+  \begin{pgfonlayer}{hpbguide}
+    \draw[hpb/now] (#1,#2+0.55) -- (#1,#3-0.45);
+  \end{pgfonlayer}
+  \begin{pgfonlayer}{hpbfront}
+    \node[hpb/now label] at (#1,#2+0.55) {NOW};
+  \end{pgfonlayer}}
+
+% \hpbgate[<right>]{<col>}{<lanetop>}{<lanebottom>}{<label>}
+%   band from col-1.0 (encloses the dashed rises, which arrive at
+%   col-mergeoff with mergeoff <= 0.9) to col+<right> (default 1.9 columns:
+%   encloses the tag and a "Mon YYYY" target date at col = 0.75cm).  Style:
+%   thin solid muted border and light fill, used by no other glyph.
+\NewDocumentCommand\hpbgate{O{1.9} m m m m}{%
+  \begin{pgfonlayer}{background}
+    \draw[hpb/gate] (#2-1.0,#4-0.42) rectangle (#2+#1,#3+0.62);
+  \end{pgfonlayer}
+  \hpb@ifempty{#5}{}{%
+    \begin{pgfonlayer}{hpbfront}
+      \node[font=\hpb@fsb, text=hpbInk, anchor=north west, inner sep=1.5pt,
+            align=left] at (#2-1.0,#4-0.42) {#5};
+    \end{pgfonlayer}}}
+
+% \hpbbundle{<x1,y1>}{<x2,y2>}{<label>}   launch bundle: groups planned
+%   baselines of several lines that must be released together (all or
+%   nothing).  Dash-dot rounded frame from the lower-left corner (x1,y1) to
+%   the upper-right corner (x2,y2); label above its upper-left corner.
+\NewDocumentCommand\hpbbundle{m m m}{%
+  \begin{pgfonlayer}{background}
+    \draw[hpb/bundle] (#1) rectangle (#2);
+  \end{pgfonlayer}
+  \hpb@ifempty{#3}{}{%
+    \begin{pgfonlayer}{hpbfront}
+      \path (#1) coordinate (hpb@b1) (#2) coordinate (hpb@b2);
+      \node[font=\hpb@fsb, text=hpbInk, anchor=south west, inner sep=1.5pt,
+            align=left] at (hpb@b1 |- hpb@b2) {#3};
+    \end{pgfonlayer}}}
+
+% \hpbdepends[<tikz>]{<x,y from>}{<x,y to>}{<label>}    b depends on b' or v
+% \hpbpropagates[<tikz>]{<x,y from>}{<x,y to>}{<label>} b is ported to b'
+%   thin straight connectors between two nodes, shortened by 8pt at both ends
+%   so that they stop at the node borders: dotted with an open head for a
+%   dependency, dashed with a filled head for a propagation; italic label at
+%   the midpoint.  They are annotations of the model and the only lines that
+%   may cross lanes diagonally.
+\newcommand\hpb@connector[4]{% #1 style, #2 from, #3 to, #4 label
+  \begin{pgfonlayer}{hpbbranch}
+    \draw[#1] (#2) -- (#3) coordinate[midway] (hpb@cm);
+  \end{pgfonlayer}
+  \hpb@ifempty{#4}{}{%
+    \begin{pgfonlayer}{hpbfront}
+      \node[hpb/conn label] at (hpb@cm) {#4};
+    \end{pgfonlayer}}}
+\NewDocumentCommand\hpbdepends{O{} m m m}{%
+  \hpb@connector{hpb/depends, #1}{#2}{#3}{#4}}
+\NewDocumentCommand\hpbpropagates{O{} m m m}{%
+  \hpb@connector{hpb/propagates, #1}{#2}{#3}{#4}}
+
+% \hpbseparator{<y>}{<fromcol>}{<tocol>}   thin rule between the lane bands of
+%   two product lines (each line is read relative to its own main line)
+\NewDocumentCommand\hpbseparator{m m m}{%
+  \begin{pgfonlayer}{hpbguide}
+    \draw[hpb/separator] (#2,#1) -- (#3,#1);
+  \end{pgfonlayer}}
+
+% \hpbcallout[<tikz options for the text box>]{<x,y>}{<text>}{<target x,y>}
+%   Box on the front layer; the leader runs underneath glyphs so that it
+%   visually stops at the glyph border.  Use \\ for line breaks.
+\NewDocumentCommand\hpbcallout{O{} m m m}{%
+  \begin{pgfonlayer}{hpbfront}
+    \node[hpb/callout, #1] (hpb@c) at (#2) {#3};
+  \end{pgfonlayer}
+  \begin{pgfonlayer}{hpbguide}
+    % no end dot: the leader runs underneath the glyphs and visibly stops at
+    % the border of the glyph it points to (never mistaken for a step)
+    \draw[hpb/leader] (hpb@c) -- (#4);
+  \end{pgfonlayer}}
+
+% \hpbaxis{<fromcol>}{<tocol>}{<y>}  and  \hpbtick{<col>}{<text>}{<y>}
+\NewDocumentCommand\hpbaxis{m m m}{%
+  \draw[hpb/axis, -{Stealth[length=3.5pt,width=3.5pt]}] (#1,#3) -- (#2,#3);
+  \node[font=\hpb@fs\itshape, text=hpbMuted, anchor=west, inner sep=1.5pt]
+    at (#2,#3) {time};}
+\NewDocumentCommand\hpbtick{m m m}{%
+  \draw[hpb/axis] (#1,#3) -- ([yshift=-2.5pt]#1,#3);
+  \node[font=\hpb@fs, text=hpbMuted, anchor=north, inner sep=1.5pt]
+    at ([yshift=-2.5pt]#1,#3) {#2};}
+
+% \hpbfit{<picture>}: typeset at natural size; scale down uniformly to the
+%   line width only if the picture is wider (never scales up, so that glyphs
+%   keep their normative size whenever possible; rule L10)
+\newsavebox\hpb@fitbox
+\NewDocumentCommand\hpbfit{+m}{%
+  \sbox\hpb@fitbox{#1}%
+  \ifdim\wd\hpb@fitbox>\linewidth
+    \resizebox{\linewidth}{!}{\usebox\hpb@fitbox}%
+  \else
+    \usebox\hpb@fitbox
+  \fi}
+
+\endinput

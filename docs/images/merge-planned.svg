@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="doc-merge-planned" class="hpb hpb-theme-default" width="552" height="254" viewBox="0 0 552 254" role="img" aria-labelledby="doc-merge-planned-title doc-merge-planned-desc" font-family="Inter, &#39;Segoe UI&#39;, &#39;Helvetica Neue&#39;, Arial, sans-serif">
+<title id="doc-merge-planned-title">Merged, awaiting release</title>
+<desc id="doc-merge-planned-desc">Horizontal Product Branch diagram: 1 product line, 1 released and 1 planned baseline, 2 branches (1 open).</desc>
+<rect class="hpb-bg" x="0" y="0" width="552" height="254" fill="#FFFFFF"/>
+<g class="hpb-layer-background">
+<rect x="398.7" y="65.5" width="113.2" height="146.5" rx="4" fill="#BAE6FD" fill-opacity="0.22" stroke="#6B7280" stroke-width="0.6"/>
+</g>
+<g class="hpb-layer-guides">
+<path d="M116 140 H535.9" stroke="#D1D5DB" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="0 4.5" fill="none"/>
+<path d="M116 180 H535.9" stroke="#D1D5DB" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="0 4.5" fill="none"/>
+<path class="hpb-now-line" d="M365.1 60 V196" stroke="#0EA5E9" stroke-width="1.2" stroke-dasharray="4 2.5" fill="none"/>
+<path d="M130 212 H509.9" stroke="#9CA3AF" stroke-width="0.6" fill="none"/>
+<path d="M513.9 212 L508.9 209.8 L508.9 214.2 Z" fill="#9CA3AF"/>
+<path d="M163.6 212 V215" stroke="#9CA3AF" stroke-width="0.6"/>
+<path d="M307.6 212 V215" stroke="#9CA3AF" stroke-width="0.6"/>
+<path d="M441.9 212 V215" stroke="#9CA3AF" stroke-width="0.6"/>
+</g>
+<g class="hpb-layer-branches" fill="none" stroke-linecap="round" stroke-linejoin="round">
+<g class="hpb-branch-path" data-hpb-kind="branch" data-hpb-id="X-7"><path class="hpb-path" d="M163.6 100 L186.8 100 A8 8 0 0 1 194.8 108 L194.8 132 A8 8 0 0 0 202.8 140 L307.6 140" stroke="#374151" stroke-width="2"/><path class="hpb-path-target" d="M307.6 140 L402.7 140 A8 8 0 0 0 410.7 132 L410.7 108 A8 8 0 0 1 418.7 100 L441.9 100" stroke="#374151" stroke-width="1.6" stroke-linecap="butt" stroke-dasharray="4 3"/></g>
+<g class="hpb-branch-path" data-hpb-kind="branch" data-hpb-id="X-8"><path class="hpb-path" d="M163.6 100 L179.6 100 A8 8 0 0 1 187.6 108 L187.6 172 A8 8 0 0 0 195.6 180 L365.1 180" stroke="#374151" stroke-width="2"/><path class="hpb-path-target" d="M365.1 180 L409.9 180 A8 8 0 0 0 417.9 172 L417.9 108 A8 8 0 0 1 425.9 100 L441.9 100" stroke="#374151" stroke-width="1.6" stroke-linecap="butt" stroke-dasharray="4 3"/></g>
+</g>
+<g class="hpb-layer-branch-nodes">
+<g class="hpb-branch hpb-type-issue hpb-state-awaiting" id="doc-merge-planned-b-X-7" data-hpb-kind="branch" data-hpb-id="X-7" tabindex="-1"><title>X-7 Battery drain — issue branch forked from v1.0 — resolved, awaiting release in v1.1</title><circle class="hpb-terminal-merge" cx="307.6" cy="140" r="7" fill="#FB8A6E" stroke="#374151" stroke-width="1.6"/><path d="M304.61 139.89 L306.68 142.19 L310.71 137.35" fill="none" stroke="#374151" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><circle class="hpb-start" cx="211.6" cy="140" r="7" fill="#FB8A6E" stroke="#374151" stroke-width="1.6"/><text x="211.6" y="143.6" font-size="10" fill="#374151" font-weight="700" text-anchor="middle">X</text></g>
+<g class="hpb-branch hpb-type-issue hpb-state-targeted" id="doc-merge-planned-b-X-8" data-hpb-kind="branch" data-hpb-id="X-8" tabindex="-1"><title>X-8 Wi-Fi reconnect — issue branch forked from v1.0 — open, targeted at v1.1</title><circle class="hpb-head-ring" cx="365.1" cy="180" r="10.5" fill="none" stroke="#FB8A6E" stroke-width="1.6"/><circle class="hpb-head" cx="365.1" cy="180" r="7" fill="#FFFFFF" stroke="#374151" stroke-width="1.6"/><circle class="hpb-start" cx="259.6" cy="180" r="7" fill="#FB8A6E" stroke="#374151" stroke-width="1.6"/><text x="259.6" y="183.6" font-size="10" fill="#374151" font-weight="700" text-anchor="middle">X</text></g>
+</g>
+<g class="hpb-layer-lines" fill="none">
+<path class="hpb-main" d="M130 100 H365.1" stroke="#374151" stroke-width="3"/>
+<path class="hpb-main-planned" d="M365.1 100 H441.9" stroke="#374151" stroke-width="3" stroke-dasharray="6 4" stroke-dashoffset="-3"/>
+<path class="hpb-main-continuation" d="M447.9 100 H535.9" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-dasharray="0 5"/>
+<circle cx="130" cy="100" r="4.5" fill="#374151"/>
+</g>
+<g class="hpb-layer-baselines">
+<g class="hpb-baseline hpb-kind-firmware hpb-status-released" id="doc-merge-planned-v-v1_2e_0" data-hpb-kind="baseline" data-hpb-id="v1.0" tabindex="-1"><title>v1.0 — released firmware baseline, Jan 2026</title><circle cx="163.6" cy="100" r="9" fill="#BAE6FD" stroke="#374151" stroke-width="2.5"/></g>
+<g class="hpb-baseline hpb-kind-firmware hpb-status-planned" id="doc-merge-planned-v-v1_2e_1" data-hpb-kind="baseline" data-hpb-id="v1.1" tabindex="-1"><title>v1.1 — planned firmware baseline, target Apr 2026</title><circle cx="441.9" cy="100" r="9" fill="#FFFFFF" stroke="#374151" stroke-width="1.4" stroke-dasharray="2.6 1.8"/></g>
+</g>
+<g class="hpb-layer-front">
+<g class="hpb-baseline-front" data-hpb-kind="baseline" data-hpb-id="v1.0"><rect class="hpb-tag" x="149.6" y="71.5" width="28" height="14" fill="#BAE6FD" stroke="#374151" stroke-width="1"/><text x="163.6" y="82.1" font-size="10" fill="#374151" font-weight="700" text-anchor="middle">v1.0</text><path d="M163.6 85.5 V87.8" stroke="#374151" stroke-width="0.9" fill="none"/><path d="M163.6 90.4 L161.7 87.2 L165.5 87.2 Z" fill="#374151"/></g>
+<g class="hpb-baseline-front" data-hpb-kind="baseline" data-hpb-id="v1.1"><rect class="hpb-tag" x="427.9" y="71.5" width="28" height="14" fill="#FFFFFF" stroke="#374151" stroke-width="1" stroke-dasharray="2 1.4"/><text x="441.9" y="82.1" font-size="10" fill="#374151" font-weight="700" text-anchor="middle">v1.1</text><path d="M441.9 85.5 V87.8" stroke="#374151" stroke-width="0.9" fill="none"/><path d="M441.9 90.4 L440 87.2 L443.8 87.2 Z" fill="#374151"/><text x="458.9" y="82" font-size="10" fill="#6B7280" font-style="italic" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round" stroke-opacity="0.9" paint-order="stroke">Apr 2026</text></g>
+<g class="hpb-branch-front" data-hpb-kind="branch" data-hpb-id="X-7"><text x="204.6" y="129" font-size="10" fill="#374151" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round" stroke-opacity="0.9" paint-order="stroke" class="hpb-label">X-7 Battery drain</text></g>
+<g class="hpb-branch-front" data-hpb-kind="branch" data-hpb-id="X-8"><text x="252.6" y="169" font-size="10" fill="#374151" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round" stroke-opacity="0.9" paint-order="stroke" class="hpb-label">X-8 Wi-Fi reconnect</text></g>
+<text x="402.7" y="207" font-size="10" fill="#374151" font-weight="700">gate v1.1</text>
+<g class="hpb-now"><rect x="348.6" y="45" width="33" height="15" rx="2" fill="#0EA5E9"/><text x="365.1" y="56" font-size="10" fill="#FFFFFF" font-weight="700" text-anchor="middle">NOW</text></g>
+<text x="163.6" y="226" font-size="10" fill="#6B7280" text-anchor="middle">Jan 2026</text>
+<text x="307.6" y="226" font-size="10" fill="#6B7280" text-anchor="middle">Feb</text>
+<text x="441.9" y="226" font-size="10" fill="#6B7280" text-anchor="middle">Apr</text>
+<text x="516.9" y="215.5" font-size="10" fill="#6B7280" font-style="italic">time</text>
+<g class="hpb-legend">
+<g class="hpb-legend-box" data-hpb-line="A"><rect x="16" y="92" width="92" height="16" rx="2" fill="#BAE6FD" stroke="#374151" stroke-width="0.8"/><text x="62" y="103.5" font-size="10" fill="#374151" font-weight="700" text-anchor="middle">Product A</text></g>
+<g class="hpb-legend-box"><rect x="16" y="132" width="92" height="16" rx="2" fill="#FB8A6E" stroke="#374151" stroke-width="0.8"/><text x="62" y="143.5" font-size="10" fill="#374151" font-weight="700" text-anchor="middle">Issue (X)</text></g>
+<g class="hpb-legend-stack"><path d="M101 148 V175" stroke="#374151" stroke-width="0.8" fill="none"/><rect x="94" y="175" width="14" height="10" rx="2" fill="#FB8A6E" stroke="#374151" stroke-width="0.8"/></g>
+</g>
+<text x="16" y="29" font-size="13" fill="#374151" font-weight="700" class="hpb-title">Merged, awaiting release</text>
+</g>
+</svg>

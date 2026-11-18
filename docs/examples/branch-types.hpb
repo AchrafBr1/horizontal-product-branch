@@ -1,0 +1,10 @@
+hpb "The four branch types"
+line A "Product A"
+release v1.0
+lab L-1 "New sensor"
+improvement I-1 "Faster pairing"
+issue X-1 "Crash on boot"
+task T-1 "Migrate logs"
+release v1.1 merges I-1, X-1, T-1
+step L-1 pass "Lab test"
+release v1.2 merges L-1

@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HPB Playground</title>
+  <meta name="description" content="Write HPB Markup and see the Horizontal Product Branch diagram live.">
+  <style>
+    :root {
+      --ink: #111827; --ink-2: #374151; --muted: #6b7280; --faint: #9ca3af;
+      --rule: #e5e7eb; --rule-2: #d1d5db; --bg: #ffffff; --panel: #f9fafb; --hover: #f3f4f6;
+      --accent: #0ea5e9; --accent-ink: #0369a1;
+      --error: #dc2626; --warning: #d97706; --info: #2563eb;
+      --mono: ui-monospace, SFMono-Regular, "Cascadia Mono", Consolas, "Liberation Mono", monospace;
+      --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 var(--sans); display: flex; flex-direction: column; }
+
+    header {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      padding: 10px 16px; border-bottom: 1px solid var(--rule); background: var(--bg);
+    }
+    .brand { display: flex; align-items: baseline; gap: 8px; margin-right: auto; }
+    .brand h1 { font-size: 16px; margin: 0; letter-spacing: -0.01em; }
+    .brand .ver { font-size: 12px; color: var(--muted); }
+    .controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .field { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); }
+    select, button {
+      font: inherit; font-size: 13px; color: var(--ink); background: var(--bg);
+      border: 1px solid var(--rule-2); border-radius: 6px; padding: 5px 9px; cursor: pointer;
+    }
+    select:hover, button:hover { background: var(--hover); }
+    button:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    button.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+    button.primary:hover { background: var(--ink-2); }
+    .sep { width: 1px; height: 20px; background: var(--rule); }
+
+    main { flex: 1; display: grid; grid-template-columns: minmax(320px, 40%) 1fr; min-height: 0; }
+    .left { display: flex; flex-direction: column; border-right: 1px solid var(--rule); min-height: 0; min-width: 0; }
+    .pane-title {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+      padding: 8px 12px; border-bottom: 1px solid var(--rule); background: var(--panel);
+    }
+    .editor { flex: 1; display: flex; min-height: 0; position: relative; }
+    .gutter {
+      margin: 0; padding: 12px 8px 12px 0; width: 44px; text-align: right; color: var(--faint);
+      font: 13px/20px var(--mono); background: var(--panel); border-right: 1px solid var(--rule);
+      overflow: hidden; user-select: none; white-space: pre;
+    }
+    .gutter .err { color: var(--error); font-weight: 700; }
+    .gutter .warn { color: var(--warning); font-weight: 700; }
+    textarea {
+      flex: 1; border: 0; resize: none; padding: 12px; margin: 0; tab-size: 2;
+      font: 13px/20px var(--mono); color: var(--ink); background: var(--bg); white-space: pre; overflow: auto;
+    }
+    textarea:focus { outline: none; }
+
+    .diagnostics { border-top: 1px solid var(--rule); max-height: 32%; min-height: 96px; display: flex; flex-direction: column; }
+    .diagnostics ul { list-style: none; margin: 0; padding: 4px 0; overflow: auto; }
+    .diagnostics li { display: grid; grid-template-columns: 14px 72px auto 1fr; gap: 8px; align-items: baseline; padding: 4px 12px; cursor: pointer; font-size: 13px; }
+    .diagnostics li:hover { background: var(--hover); }
+    .diagnostics .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; transform: translateY(-1px); }
+    .diagnostics .error .dot { background: var(--error); }
+    .diagnostics .warning .dot { background: var(--warning); }
+    .diagnostics .info .dot { background: var(--info); }
+    .diagnostics .pos { font: 12px var(--mono); color: var(--muted); }
+    .diagnostics .code { font: 12px var(--mono); color: var(--ink-2); background: var(--hover); padding: 0 5px; border-radius: 3px; }
+    .diagnostics .ok { color: var(--muted); padding: 8px 12px; cursor: default; display: block; }
+    .badge { font-size: 11px; padding: 1px 7px; border-radius: 10px; background: var(--hover); color: var(--ink-2); text-transform: none; letter-spacing: 0; }
+    .badge.bad { background: #fee2e2; color: #991b1b; }
+
+    .right { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+    .preview { flex: 1; overflow: auto; padding: 20px; background:
+      linear-gradient(var(--bg), var(--bg)) padding-box,
+      repeating-linear-gradient(0deg, transparent 0 23px, #f3f4f6 23px 24px); }
+    .preview svg { display: block; }
+    .preview.fit svg { width: 100%; height: auto; }
+    .preview.dark { background: #0b1220; }
+    .status { display: flex; gap: 16px; align-items: center; padding: 6px 12px; border-top: 1px solid var(--rule); font-size: 12.5px; color: var(--muted); background: var(--panel); min-height: 32px; }
+    .status strong { color: var(--ink); font-weight: 600; }
+    .toast { margin-left: auto; color: var(--accent-ink); }
+
+    @media (max-width: 820px) {
+      main { grid-template-columns: 1fr; grid-template-rows: minmax(300px, 45vh) minmax(360px, 1fr); }
+      .left { border-right: 0; border-bottom: 1px solid var(--rule); }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="brand"><h1>HPB Playground</h1><span class="ver" id="ver"></span></div>
+  <div class="controls">
+    <label class="field">Example
+      <select id="example" aria-label="Load an example">
+        <option value="">Choose…</option>
+      </select>
+    </label>
+    <label class="field">Theme
+      <select id="theme">
+        <option value="default">default</option>
+        <option value="mono">mono</option>
+        <option value="dark">dark</option>
+        <option value="auto">auto</option>
+      </select>
+    </label>
+    <label class="field">Labels
+      <select id="labels">
+        <option value="">from source</option>
+        <option value="full">full</option>
+        <option value="ref">ref</option>
+        <option value="none">none</option>
+      </select>
+    </label>
+    <label class="field"><input type="checkbox" id="fit"> Fit width</label>
+    <span class="sep" aria-hidden="true"></span>
+    <button type="button" id="copy">Copy SVG</button>
+    <button type="button" id="download" class="primary">Download SVG</button>
+  </div>
+</header>
+
+<main>
+  <section class="left" aria-label="Editor">
+    <div class="pane-title"><span>HPB Markup</span><span class="badge" id="problem-count">0 problems</span></div>
+    <div class="editor">
+      <pre class="gutter" id="gutter" aria-hidden="true">1</pre>
+      <textarea id="src" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="HPB Markup source"></textarea>
+    </div>
+    <div class="diagnostics" aria-label="Diagnostics">
+      <div class="pane-title"><span>Diagnostics</span></div>
+      <ul id="diag"></ul>
+    </div>
+  </section>
+  <section class="right" aria-label="Preview">
+    <div class="pane-title"><span>Preview</span><span id="dims"></span></div>
+    <div class="preview" id="preview" aria-live="polite"></div>
+    <div class="status"><span id="selection">Hover a branch to highlight it; click a node to inspect it.</span><span class="toast" id="toast" role="status"></span></div>
+  </section>
+</main>
+
+<!-- Canonical examples A–E, inlined from examples/fixtures by `node playground/build.mjs`. -->
+<!-- fixtures:start -->
+<script type="text/plain" data-example="A" data-name="A — Firmware line">hpb "Product A — firmware line"
+line A "Product A"
+release v1.0 @2026-01
+improvement I-21 "Faster pairing"
+issue X-101 "Crash on boot"
+release v1.0.1 merges X-101
+issue X-102 "Wrong time after power cut"
+task T-8 "Migrate logs"
+release v1.1 @2026-03 merges I-21, X-102
+improvement I-22 "Low-power mode"
+issue X-103 "Menu translation"
+release v1.2 @2026-05 merges T-8, I-22, X-103
+</script>
+<script type="text/plain" data-example="B" data-name="B — Release gate">hpb "Planning with a release gate"
+# Situation B of the HPB paper (figures/release-gate.tex), illustrative data.
+# v2.1 is a planned baseline with a gate: it cannot be released while I-50,
+# X-211 or X-212 is open (rule R4). X-213 is open but not targeted.
+line A "Product A"
+release v2.0 @2027-01
+issue X-210 "Sync error"
+improvement I-50 "Multi-user access"
+issue X-213 "Display flicker"
+release v2.0.1 @2027-02 merges X-210
+issue X-211 "Report totals"
+issue X-212 "CSV encoding"
+step X-212 pass "verified"
+step I-50 done "implemented"
+now
+plan v2.1 @2027-05 targets I-50, X-211, X-212
+plan v2.2 @2027-09
+</script>
+<script type="text/plain" data-example="C" data-name="C — Hardware revision">hpb "DMS-4000: hardware revision"
+# Situation C of the HPB paper (figures/hardware-fork.tex), illustrative data.
+# Rev B fails the interchangeability test, so it starts a new line with an
+# explicit parent link (rule R5); Rev A keeps its own maintenance until EoS.
+line RA "DMS-4000 Rev A"
+release v1.2 @2026-01
+lab L-5 "Sensor board v2"
+improvement I-30 "Low-power mode"
+step L-5 fail "EMC test"
+release v1.3 @2026-03
+step L-5 pass "EMC retest"
+release RevB hardware @2026-06 merges L-5, I-30
+line RB "DMS-4000 Rev B" from RevB
+use RA
+release v1.4
+release v2.0 on RB
+issue X-118 "Relay chatter"
+improvement I-40 "Remote unlock" on RB
+release v1.4.1 @2026-09 merges X-118
+release v2.1 on RB merges I-40
+eos RA @2026-12
+</script>
+<script type="text/plain" data-example="D" data-name="D — Discard and re-target">hpb "Discards and re-targeting"
+# Situation D of the HPB paper (figures/discard.tex), illustrative data.
+# Discards carry their rationale (rule R2); X-63 was moved from v3.1 to v3.2,
+# and the former target stays visible, faded.
+line A "Product A"
+release v3.0 @2026-07
+improvement I-60 "Solar panel"
+issue X-52 "Display flicker"
+issue X-57 "Screen flickers"
+discard I-60 "not viable (unit cost)"
+discard X-57 "duplicate of X-52"
+release v3.0.1 @2026-09 merges X-52
+improvement I-61 "Offline mode"
+issue X-63 "OTA timeout"
+step X-63 done "fix ready"
+now
+plan v3.1 @2027-03 targets I-61, X-63
+plan v3.2 @2027-06
+target X-63 v3.2
+</script>
+<script type="text/plain" data-example="E" data-name="E — Collapsed history">hpb "Readability at scale"
+# Situation E of the HPB paper (figures/scale.tex), illustrative data.
+# Older releases are collapsed into count badges; eight branches are open at
+# NOW, each type gets as many lanes as it has overlapping branches, and lanes
+# freed by the merges into v2.2 are reused by I-45 and X-95.
+line B "Product B"
+release v1.0
+collapse v1.0 14
+task T-14 "EMC re-test"
+release v1.1
+collapse v1.1 9
+release v2.0
+collapse v2.0 21
+lab L-5 "Radio module"
+task T-20 "Field logs"
+issue X-88 "Rare reboot"
+release v2.1
+collapse v2.1 12
+lab L-7 "Antenna tuning"
+improvement I-42 "Fleet dashboard"
+improvement I-41 "Quick setup"
+issue X-90 "Clock drift"
+release v2.2 merges I-41, X-90
+improvement I-45 "Voice UI"
+issue X-95 "Pairing"
+now
+</script>
+<!-- fixtures:end -->
+
+<script src="../packages/web/dist/hpb.min.js"></script>
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var src = $("src"), gutter = $("gutter"), preview = $("preview"), diagList = $("diag");
+  var STORAGE_KEY = "hpb-playground:v1";
+  var lastSvg = "", lastTitle = "hpb-diagram", detach = null, timer = 0;
+
+  if (!window.HPB) {
+    preview.innerHTML = "<p style='color:#b91c1c'>hpb.min.js not found. Run <code>pnpm --filter @hpb/web build</code> first.</p>";
+    return;
+  }
+  HPB.initialize({ startOnLoad: false });
+  $("ver").textContent = "@hpb/web " + HPB.version + " · language " + HPB.languageVersion;
+
+  // ---------------------------------------------------------------- examples
+  var examples = {};
+  Array.prototype.forEach.call(document.querySelectorAll("script[data-example]"), function (s) {
+    var key = s.getAttribute("data-example");
+    examples[key] = s.textContent.replace(/^\n/, "");
+    var opt = document.createElement("option");
+    opt.value = key; opt.textContent = s.getAttribute("data-name") || key;
+    $("example").appendChild(opt);
+  });
+
+  function store(key, value) { try { localStorage.setItem(key, value); } catch (e) { /* storage unavailable */ } }
+  function load(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+
+  function fromHash() {
+    var m = /^#code=(.+)$/.exec(location.hash);
+    if (!m) return null;
+    try { return decodeURIComponent(escape(atob(decodeURIComponent(m[1])))); } catch (e) { return null; }
+  }
+
+  // ---------------------------------------------------------------- render
+  function renderGutter(count, marks) {
+    var out = [];
+    for (var i = 1; i <= count; i++) {
+      var sev = marks[i];
+      out.push(sev ? "<span class='" + (sev === "error" ? "err" : "warn") + "'>" + i + "</span>" : String(i));
+    }
+    gutter.innerHTML = out.join("\n");
+    gutter.scrollTop = src.scrollTop;
+  }
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+  function renderDiagnostics(list) {
+    var errors = 0, warnings = 0, marks = {};
+    diagList.innerHTML = "";
+    var MAX = 50;
+    list.forEach(function (d, i) {
+      if (d.severity === "error") errors++; else if (d.severity === "warning") warnings++;
+      if (d.severity !== "info" && marks[d.line] !== "error") marks[d.line] = d.severity;
+      if (i >= MAX) return; // a pasted non-HPB file must not flood the panel
+      var li = document.createElement("li");
+      li.className = d.severity;
+      li.title = "Go to line " + d.line;
+      li.innerHTML = "<span class='dot' aria-label='" + d.severity + "'></span><span class='pos'>Ln " + d.line + ", Col " + d.col +
+        "</span><span class='code'>" + esc(d.code) + "</span><span>" + esc(d.message) + "</span>";
+      li.addEventListener("click", function () { goTo(d.line, d.col, d.endCol); });
+      diagList.appendChild(li);
+    });
+    if (list.length > MAX) {
+      var more = document.createElement("li");
+      more.className = "info";
+      more.textContent = "… and " + (list.length - MAX) + " more";
+      diagList.appendChild(more);
+    }
+    if (!list.length) diagList.innerHTML = "<li class='ok'>No problems found by the rule checks (R1–R4, and R5–R7 where the text allows).</li>";
+    var badge = $("problem-count");
+    var n = errors + warnings;
+    badge.textContent = errors ? errors + " error" + (errors > 1 ? "s" : "") + (warnings ? ", " + warnings + " warning" + (warnings > 1 ? "s" : "") : "")
+      : n ? n + " warning" + (n > 1 ? "s" : "") : "0 problems";
+    badge.className = "badge" + (errors ? " bad" : "");
+    return marks;
+  }
+
+  function goTo(line, col, endCol) {
+    var lines = src.value.split("\n"), start = 0;
+    for (var i = 0; i < line - 1 && i < lines.length; i++) start += lines[i].length + 1;
+    var lineLen = (lines[line - 1] || "").length;
+    var a = start + Math.max(0, Math.min(lineLen, (col || 1) - 1));
+    var b = endCol ? start + Math.min(lineLen, endCol - 1) : start + lineLen;
+    src.focus();
+    src.setSelectionRange(a, Math.max(a, b));
+    src.scrollTop = Math.max(0, (line - 4) * 20);
+  }
+
+  function options() {
+    var o = { theme: $("theme").value };
+    if ($("labels").value) o.labels = $("labels").value;
+    return o;
+  }
+
+  function update() {
+    var code = src.value;
+    var diagnostics = HPB.validate(code);
+    var marks = renderDiagnostics(diagnostics);
+    renderGutter(code.split("\n").length, marks);
+    try {
+      lastSvg = HPB.renderSync("pg", code, options());
+    } catch (e) {
+      lastSvg = "";
+      preview.textContent = String(e && e.message || e);
+      return;
+    }
+    if (detach) detach();
+    preview.innerHTML = lastSvg;
+    preview.classList.toggle("dark", $("theme").value === "dark");
+    var svg = preview.querySelector("svg");
+    $("dims").textContent = svg && !svg.classList.contains("hpb-error") ? svg.getAttribute("width") + " × " + svg.getAttribute("height") + " px" : "";
+    var t = svg && svg.querySelector("title");
+    lastTitle = (t && t.textContent) || "hpb-diagram";
+    detach = HPB.attachInteraction(preview, {
+      onNodeClick: function (node) {
+        var g = preview.querySelector("g.hpb-" + node.kind + "[data-hpb-id='" + cssEscape(node.id) + "'] > title");
+        $("selection").innerHTML = "<strong>" + esc(node.kind + " " + node.id) + "</strong>" + (g ? " — " + esc(g.textContent.split(" — ").slice(1).join(" — ")) : "");
+      }
+    });
+    store(STORAGE_KEY, code);
+  }
+
+  function cssEscape(s) { return window.CSS && CSS.escape ? CSS.escape(s) : String(s).replace(/['"\\]/g, "\\$&"); }
+
+  function schedule() { clearTimeout(timer); timer = setTimeout(update, 120); }
+
+  // ---------------------------------------------------------------- actions
+  var toastTimer = 0;
+  function toast(msg) {
+    $("toast").textContent = msg;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { $("toast").textContent = ""; }, 1800);
+  }
+
+  function fullSvg() {
+    return lastSvg ? '<?xml version="1.0" encoding="UTF-8"?>\n' + lastSvg + "\n" : "";
+  }
+
+  $("copy").addEventListener("click", function () {
+    var text = fullSvg();
+    if (!text) return toast("Nothing to copy");
+    var done = function () { toast("SVG copied to the clipboard"); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () { legacyCopy(text) ? done() : toast("Copy failed"); });
+    } else if (legacyCopy(text)) done(); else toast("Copy failed");
+  });
+
+  function legacyCopy(text) {
+    var ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  }
+
+  $("download").addEventListener("click", function () {
+    var text = fullSvg();
+    if (!text) return toast("Nothing to download");
+    var name = lastTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "hpb-diagram";
+    var url = URL.createObjectURL(new Blob([text], { type: "image/svg+xml" }));
+    var a = document.createElement("a");
+    a.href = url; a.download = name + ".svg";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    toast("Saved " + name + ".svg");
+  });
+
+  $("example").addEventListener("change", function () {
+    var key = this.value;
+    if (!key || !examples[key]) return;
+    src.value = examples[key];
+    update();
+    src.scrollTop = 0;
+  });
+  ["theme", "labels"].forEach(function (id) { $(id).addEventListener("change", update); });
+  $("fit").addEventListener("change", function () { preview.classList.toggle("fit", this.checked); });
+
+  src.addEventListener("input", schedule);
+  src.addEventListener("scroll", function () { gutter.scrollTop = src.scrollTop; });
+  src.addEventListener("keydown", function (e) {
+    if (e.key === "Tab" && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      e.preventDefault();
+      var s = src.selectionStart, t = src.selectionEnd;
+      src.value = src.value.slice(0, s) + "  " + src.value.slice(t);
+      src.selectionStart = src.selectionEnd = s + 2;
+      schedule();
+    }
+  });
+
+  // ---------------------------------------------------------------- start
+  var initial = fromHash() || load(STORAGE_KEY);
+  if (initial === null || !initial.trim()) { initial = examples.A || ""; $("example").value = "A"; }
+  src.value = initial;
+  update();
+})();
+</script>
+</body>
+</html>

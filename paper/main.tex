@@ -1,0 +1,237 @@
+% =====================================================================
+%  Horizontal Product Branch (HPB) -- a practitioner's methodology paper
+%  Author: Achraf Bouchtarouif El Khiat
+%  Engine: pdfLaTeX (Overleaf / arXiv, TeX Live 2023 or later).
+%  No shell-escape, no external images, no fontspec: figures are TikZ.
+% ---------------------------------------------------------------------
+%  NOTES FOR SECTION WRITERS AND THE INTEGRATOR
+%  * Theorem-like environments defined below:
+%      \begin{definition}[Name] ... \end{definition}   -> "Definition 1"
+%      \begin{hpbrule}[Name]    ... \end{hpbrule}      -> "Rule R1"
+%      \begin{property}[Name]   ... \end{property}     -> "Property P1"
+%      \begin{remark}           ... \end{remark}       -> "Remark 1"
+%  * IMPORTANT: there is NO environment called "rule". The name clashes
+%    with the LaTeX primitive \rule, so the rules R1--R7 must be written
+%    with \begin{hpbrule} ... \end{hpbrule}. Rules are numbered R1, R2,
+%    ... and properties P1, P2, ... automatically; do not type the
+%    "R"/"P" prefix by hand inside the optional argument. The rules are
+%    defined ONCE, formally, in appendix-a-formal.tex (labels rule:origin,
+%    rule:closure, rule:time, rule:gate, rule:lineage, rule:typed,
+%    rule:discussion); the main text refers to them with \cref.
+%  * Cross references: always \cref{...} / \Cref{...} (cleveref knows
+%    Definition, Rule, Property, Remark, Algorithm, Figure, Table,
+%    Section, Appendix). Citations: \citep{key} / \citet{key}, keys
+%    from references.bib only.
+%  * Label prefixes: fig:, tab:, sec:, app:, def:, rule:, prop:, alg:,
+%    eq:, lst:.
+%  * Code listings: the default style is "hpblatex" (LaTeX code for
+%    hpb.sty). HPB Markup is typeset with
+%      \begin{lstlisting}[style=hpb] ... \end{lstlisting}
+%    (or \lstinline[style=hpb]|...| inline).
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+
+% ---------------------------------------------------------------- layout
+\usepackage[a4paper,margin=2.5cm]{geometry}
+
+% ---------------------------------------------------------- fonts & text
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% ---------------------------------------------------------------- maths
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% ------------------------------------------------- figures, tables, lists
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{subcaption}
+\captionsetup{font=small,labelfont=bf}
+% float placement: allow tall figures/tables at the top of text pages and
+% avoid float-only pages that are mostly empty
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.5}
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\floatpagefraction}{0.75}
+\setcounter{topnumber}{3}
+\setcounter{totalnumber}{4}
+
+% ----------------------------------------------------------- algorithms
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+% ------------------------------------------------------------- listings
+\usepackage{listings}
+% (1) LaTeX code that uses hpb.sty (default style, Appendix D)
+\lstdefinestyle{hpblatex}{
+  language=[LaTeX]TeX,
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{blue!55!black},
+  commentstyle=\color{black!55}\itshape,
+  columns=fullflexible,
+  keepspaces=true,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{black!25},
+  framesep=4pt,
+  xleftmargin=6pt,
+  xrightmargin=6pt,
+  showstringspaces=false,
+  upquote=true,
+  moretexcs={hpbgraph,hpblane,hpbmainline,hpborigin,hpbrelease,hpbplanned,
+    hpbhardware,hpbbranch,hpbstart,hpbstep,hpblabel,hpbnow,hpbcollapsed,
+    hpbeos,hpblinefork,hpbcallout,hpbgate,hpbtarget,hpbstream,hpbprocess,
+    hpbmilestone,hpbdepends,hpbpropagates,hpbpoststep,hpbbundle,hpbfit,
+    hpbseparator,hpbset}
+}
+% (2) HPB Markup, the text language of Section 9 and Appendix C
+\lstdefinelanguage{hpb}{
+  sensitive=false,
+  alsoletter={-.},
+  morekeywords=[1]{hpb,config,line,use,from,on,now,eos,collapse,note},
+  morekeywords=[2]{release,plan,merge,merges,into,discard,target,targets,
+    force,step},
+  morekeywords=[3]{improvement,imp,feature,issue,bug,defect,task,lab,
+    evolution},
+  morekeywords=[4]{firmware,software,hardware,other,done,todo,pass,fail},
+  morecomment=[l]{\#},
+  morecomment=[l]{\%\%},
+  morestring=[b]",
+}
+\lstdefinestyle{hpb}{
+  language=hpb,
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=[1]\color{blue!55!black}\bfseries,
+  keywordstyle=[2]\color{teal!60!black}\bfseries,
+  keywordstyle=[3]\color{violet!70!black}\bfseries,
+  keywordstyle=[4]\color{orange!65!black},
+  stringstyle=\color{black!70},
+  commentstyle=\color{black!50}\itshape,
+  columns=fullflexible,
+  keepspaces=true,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{black!25},
+  framesep=4pt,
+  xleftmargin=6pt,
+  xrightmargin=6pt,
+  showstringspaces=false,
+  upquote=true,
+  numbers=none
+}
+\lstset{style=hpblatex}
+
+% ------------------------------------------------------- plots & HPB glyphs
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{hpb}
+% one canvas for every HPB diagram (layout rule L1): column, lane, key width
+\hpbset{col=0.75cm, lane=1cm, legend=1.7cm}
+
+% ----------------------------------------------------------- bibliography
+\usepackage[numbers,sort&compress]{natbib}
+
+% ---------------------------------------------------------- hyperlinks
+\definecolor{hpbLinkBlue}{HTML}{1E3A8A}
+\usepackage[colorlinks=true,linkcolor=hpbLinkBlue,citecolor=hpbLinkBlue,
+  urlcolor=hpbLinkBlue,filecolor=hpbLinkBlue,
+  pdfauthor={Achraf Bouchtarouif El Khiat},
+  pdftitle={Horizontal Product Branch (HPB): A Practitioner's Methodology
+    for Planning and Tracing Product Evolution across Hardware, Firmware
+    and Software},
+  pdfkeywords={product management, product evolution, hardware, firmware,
+    software, release planning, traceability, branch-and-merge,
+    configuration management, visual notation, diagrams as code}]{hyperref}
+\usepackage[capitalise,noabbrev]{cleveref}
+
+% ----------------------------------------------- theorem-like environments
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{hpbrule}{Rule}
+\renewcommand{\thehpbrule}{R\arabic{hpbrule}}
+\newtheorem{property}{Property}
+\renewcommand{\theproperty}{P\arabic{property}}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+\crefname{definition}{Definition}{Definitions}
+\Crefname{definition}{Definition}{Definitions}
+\crefname{hpbrule}{Rule}{Rules}
+\Crefname{hpbrule}{Rule}{Rules}
+\crefname{property}{Property}{Properties}
+\Crefname{property}{Property}{Properties}
+\crefname{remark}{Remark}{Remarks}
+\Crefname{remark}{Remark}{Remarks}
+\crefname{algorithm}{Algorithm}{Algorithms}
+\Crefname{algorithm}{Algorithm}{Algorithms}
+\crefname{appendix}{Appendix}{Appendices}
+\Crefname{appendix}{Appendix}{Appendices}
+\crefname{lstlisting}{Listing}{Listings}
+\Crefname{lstlisting}{Listing}{Listings}
+
+% ------------------------------------------------------------- shorthands
+\newcommand{\HPB}{HPB}
+% Public repository of HPB Markup and the open-source renderer.
+% Same URL as "repository" in every package.json of the toolkit. If it is
+% emptied, the paper prints a neutral wording instead of a link.
+\def\hpbrepourl{https://github.com/AchrafBr1/hpb}
+\newcommand{\hpbrepo}{\ifx\hpbrepourl\empty
+  the HPB Markup repository (its address is given with the first public
+  release)\else\expandafter\url\expandafter{\hpbrepourl}\fi}
+\providecommand{\keywords}[1]{%
+  \par\medskip\noindent{\small\textbf{Keywords:} #1}\par}
+
+% ================================================================ front
+\title{Horizontal Product Branch (HPB): A Practitioner's Methodology for
+  Planning and Tracing Product Evolution across Hardware, Firmware and
+  Software}
+\author{Achraf Bouchtarouif El Khiat\\\texttt{achrafbouchtarouif@gmail.com}}
+\date{November 2026\\[4pt]\small Preprint, version 1.0\quad
+  DOI: \href{https://doi.org/10.5281/zenodo.24355435}{10.5281/zenodo.24355435}}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+\input{sections/00-abstract}
+\end{abstract}
+
+\keywords{product management; product evolution; hardware, firmware and
+  software; release planning; traceability; branch-and-merge;
+  configuration management; visual notation; diagrams as code}
+
+% ================================================================= body
+\input{sections/01-introduction}
+\input{sections/02-gaps}
+\input{sections/03-hpb-in-one-page}
+\input{sections/04-model}
+\input{sections/05-notation}
+\input{sections/06-practice}
+\input{sections/07-operating}
+\input{sections/08-metrics}
+\input{sections/09-tooling}
+\input{sections/10-limitations}
+\input{sections/11-conclusion}
+\input{sections/12-about-author}
+
+% ========================================================== bibliography
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+% ============================================================ appendices
+\clearpage
+\appendix
+\input{sections/appendix-a-formal}
+\input{sections/appendix-a-card}
+\input{sections/appendix-c-markup}
+\input{sections/appendix-b-package}
+
+\end{document}

@@ -1,0 +1,37 @@
+% F2 -- Condition A: a firmware/software product line (history only).
+% Illustrative data. Requires hpb.sty v1.1. Canvas: document defaults.
+\begin{figure}[t]
+\centering
+\hpbfit{%
+\begin{hpbgraph}
+  % lanes: improvements above, issues and tasks below the main line
+  \hpblane{1}{imp}{Improvement (I)}{0}{16.7}
+  \hpblane{-1}{iss}{Issue (X)}{0}{16.7}
+  \hpblane{-2}{task}{Task (T)}{0}{16.7}
+  % main line and baselines
+  \hpbmainline{0}{16.7}
+  \hpborigin{0}{Product A}
+  \hpbrelease{1}{v1.0}
+  \hpbrelease{5}{v1.0.1}
+  \hpbrelease{10}{v1.1}
+  \hpbrelease{16}{v1.2}
+  % branches (fork col, lane, start col, end col, end, merge col)
+  \hpbbranch[label={X-101 Boot loop}]{iss}{1}{-1}{2}{4}{merge}{5}
+  \hpbbranch[forkoff=0.6, mergeoff=0.6, label={I-21 Energy-saving mode}]{imp}{1}{1}{3}{9}{merge}{10}
+  \hpbbranch[forkoff=0.6, label={X-102 Log time zone}]{iss}{5}{-1}{6}{8}{merge}{10}
+  \hpbbranch[forkoff=0.3, mergeoff=0.3, label={T-8 Renew signing certificate}]{task}{5}{-2}{7}{14}{merge}{16}
+  \hpbbranch[forkoff=0.6, mergeoff=0.6, label={I-22 Remote diagnostics}]{imp}{10}{1}{11}{15}{merge}{16}
+  \hpbbranch[mergeoff=0.6, label={X-103 Wi-Fi reconnect}]{iss}{10}{-1}{12}{13}{merge}{16}
+  % ordinal time axis with calendar ticks (month of each baseline)
+  \hpbaxis{0}{16.7}{-2.75}
+  \hpbtick{1}{Jan 2026}{-2.75}
+  \hpbtick{5}{Feb}{-2.75}
+  \hpbtick{10}{Apr}{-2.75}
+  \hpbtick{16}{Jul}{-2.75}
+\end{hpbgraph}}
+\caption{Situation~A: a firmware or software line, history
+only (illustrative). Each branch shows the version it started from and the
+version that closed it; X-101 is a hotfix closed by \texttt{v1.0.1}. Time is
+ordinal: one column per event, with months only as ticks.}
+\label{fig:software-line}
+\end{figure}

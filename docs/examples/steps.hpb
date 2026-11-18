@@ -1,0 +1,9 @@
+hpb "Steps on a branch"
+line A "Product A"
+release v2.0
+lab L-7 "New radio module"
+step L-7 done "Prototype"
+step L-7 fail "EMC test"
+step L-7 todo "Fix shielding"
+step L-7 pass "EMC retest"
+release v2.1 merges L-7

@@ -1,0 +1,12 @@
+hpb "Product A — firmware line"
+line A "Product A"
+release v1.0 @2026-01
+improvement I-21 "Faster pairing"
+issue X-101 "Crash on boot"
+release v1.0.1 merges X-101
+issue X-102 "Wrong time after power cut"
+task T-8 "Migrate logs"
+release v1.1 @2026-03 merges I-21, X-102
+improvement I-22 "Low-power mode"
+issue X-103 "Menu translation"
+release v1.2 @2026-05 merges T-8, I-22, X-103

@@ -1,0 +1,94 @@
+name: Pages
+
+# Publishes the HPB Markup playground at https://achrafbr1.github.io/hpb/
+# One-time setup by the repository owner: Settings > Pages > Source: GitHub Actions, then
+# Settings > Secrets and variables > Actions > Variables: PAGES_ENABLED = true.
+# Until that variable is set, pushes skip this workflow's jobs (no failed deploy runs);
+# a manual run (workflow_dispatch) always builds and deploys.
+#
+# Site layout:
+#   /                      playground (live editor, examples A-E, diagnostics, SVG export)
+#   /hpb.min.js            browser bundle of @hpb/web (window.HPB), loaded by the playground
+#   /playground-standalone.html  the same page with the bundle inlined (works offline)
+#   /docs/                 language and integration docs, rendered example images
+#   /paper/HPB-v1.0.pdf    the paper exactly as archived on Zenodo (DOI 10.5281/zenodo.24355435)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/**"
+      - "playground/**"
+      - "docs/**"
+      - "examples/fixtures/**"
+      - "paper/HPB-v1.0.pdf"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build site
+    if: github.event_name == 'workflow_dispatch' || vars.PAGES_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build @hpb/core, @hpb/web and the playground
+        run: |
+          pnpm --filter @hpb/core build
+          pnpm --filter @hpb/web build
+          pnpm --filter @hpb/playground build
+
+      - name: Assemble _site
+        run: |
+          set -euo pipefail
+          rm -rf _site
+          mkdir -p _site/docs _site/paper
+          # the playground loads the bundle next to it, so the page works under /hpb/
+          cp packages/web/dist/hpb.min.js _site/hpb.min.js
+          sed 's#<script src="../packages/web/dist/hpb.min.js"></script>#<script src="hpb.min.js"></script>#' playground/index.html > _site/index.html
+          grep -q '<script src="hpb.min.js"></script>' _site/index.html || { echo "playground script tag not rewritten"; exit 1; }
+          cp playground/dist/index.html _site/playground-standalone.html
+          cp docs/*.md _site/docs/
+          cp -R docs/assets docs/images docs/examples _site/docs/
+          cp paper/HPB-v1.0.pdf _site/paper/HPB-v1.0.pdf
+          touch _site/.nojekyll
+          # every local src/href in the page must resolve inside _site
+          { grep -oE '(src|href)="[^"#:]+"' _site/index.html || true; } | sed -E 's/^[a-z]+="(.*)"$/\1/' | while read -r ref; do
+            test -e "_site/$ref" || { echo "missing: $ref"; exit 1; }
+          done
+          find _site -type f | sort
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="doc-force" class="hpb hpb-theme-default" width="491" height="216" viewBox="0 0 491 216" role="img" aria-labelledby="doc-force-title doc-force-desc" font-family="Inter, &#39;Segoe UI&#39;, &#39;Helvetica Neue&#39;, Arial, sans-serif">
+<title id="doc-force-title">Forced release (R4 overridden)</title>
+<desc id="doc-force-desc">Horizontal Product Branch diagram: 1 product line, 2 released and 0 planned baselines, 2 branches (1 open).</desc>
+<rect class="hpb-bg" x="0" y="0" width="491" height="216" fill="#FFFFFF"/>
+<g class="hpb-layer-background">
+</g>
+<g class="hpb-layer-guides">
+<path d="M116 140 H474.2" stroke="#D1D5DB" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="0 4.5" fill="none"/>
+<path d="M116 180 H474.2" stroke="#D1D5DB" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="0 4.5" fill="none"/>
+<path class="hpb-now-line" d="M426.2 60 V196" stroke="#0EA5E9" stroke-width="1.2" stroke-dasharray="4 2.5" fill="none"/>
+</g>
+<g class="hpb-layer-branches" fill="none" stroke-linecap="round" stroke-linejoin="round">
+<g class="hpb-branch-path" data-hpb-kind="branch" data-hpb-id="X-1"><path class="hpb-path" d="M163.6 100 L186.8 100 A8 8 0 0 1 194.8 108 L194.8 132 A8 8 0 0 0 202.8 140 L346.2 140 A8 8 0 0 0 354.2 132 L354.2 108 A8 8 0 0 1 362.2 100 L378.2 100" stroke="#374151" stroke-width="2"/></g>
+<g class="hpb-branch-path" data-hpb-kind="branch" data-hpb-id="X-2"><path class="hpb-path" d="M163.6 100 L179.6 100 A8 8 0 0 1 187.6 108 L187.6 172 A8 8 0 0 0 195.6 180 L426.2 180" stroke="#374151" stroke-width="2"/></g>
+</g>
+<g class="hpb-layer-branch-nodes">
+<g class="hpb-branch hpb-type-issue hpb-state-merged" id="doc-force-b-X-1" data-hpb-kind="branch" data-hpb-id="X-1" tabindex="-1"><title>X-1 Crash on boot — issue branch forked from v1.0 — merged into v1.1</title><circle class="hpb-terminal-merge" cx="307.6" cy="140" r="7" fill="#FB8A6E" stroke="#374151" stroke-width="1.6"/><path d="M304.61 139.89 L306.68 142.19 L310.71 137.35" fill="none" stroke="#374151" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><circle class="hpb-start" cx="211.6" cy="140" r="7" fill="#FB8A6E" stroke="#374151" stroke-width="1.6"/><text x="211.6" y="143.6" font-size="10" fill="#374151" font-weight="700" text-anchor="middle">X</text></g>
+<g class="hpb-branch hpb-type-issue hpb-state-open" id="doc-force-b-X-2" data-hpb-kind="branch" data-hpb-id="X-2" tabindex="-1"><title>X-2 Slow menu — issue branch forked from v1.0 — open</title><circle class="hpb-head-ring" cx="426.2" cy="180" r="10.5" fill="none" stroke="#FB8A6E" stroke-width="1.6"/><circle class="hpb-head" cx="426.2" cy="180" r="7" fill="#FFFFFF" stroke="#374151" stroke-width="1.6"/><circle class="hpb-start" cx="259.6" cy="180" r="7" fill="#FB8A6E" stroke="#374151" stroke-width="1.6"/><text x="259.6" y="183.6" font-size="10" fill="#374151" font-weight="700" text-anchor="middle">X</text></g>
+</g>
+<g class="hpb-layer-lines" fill="none">
+<path class="hpb-main" d="M130 100 H426.2" stroke="#374151" stroke-width="3"/>
+<path class="hpb-main-continuation" d="M432.2 100 H474.2" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-dasharray="0 5"/>
+<circle cx="130" cy="100" r="4.5" fill="#374151"/>
+</g>
+<g class="hpb-layer-baselines">
+<g class="hpb-baseline hpb-kind-firmware hpb-status-released" id="doc-force-v-v1_2e_0" data-hpb-kind="baseline" data-hpb-id="v1.0" tabindex="-1"><title>v1.0 — released firmware baseline</title><circle cx="163.6" cy="100" r="9" fill="#BAE6FD" stroke="#374151" stroke-width="2.5"/></g>
+<g class="hpb-baseline hpb-kind-firmware hpb-status-released" id="doc-force-v-v1_2e_1" data-hpb-kind="baseline" data-hpb-id="v1.1" tabindex="-1"><title>v1.1 — released firmware baseline (released with force: rule R4 overridden)</title><circle cx="378.2" cy="100" r="9" fill="#BAE6FD" stroke="#374151" stroke-width="2.5"/></g>
+</g>
+<g class="hpb-layer-front">
+<g class="hpb-baseline-front" data-hpb-kind="baseline" data-hpb-id="v1.0"><rect class="hpb-tag" x="149.6" y="71.5" width="28" height="14" fill="#BAE6FD" stroke="#374151" stroke-width="1"/><text x="163.6" y="82.1" font-size="10" fill="#374151" font-weight="700" text-anchor="middle">v1.0</text><path d="M163.6 85.5 V87.8" stroke="#374151" stroke-width="0.9" fill="none"/><path d="M163.6 90.4 L161.7 87.2 L165.5 87.2 Z" fill="#374151"/></g>
+<g class="hpb-baseline-front" data-hpb-kind="baseline" data-hpb-id="v1.1"><rect class="hpb-tag" x="364.2" y="71.5" width="28" height="14" fill="#BAE6FD" stroke="#374151" stroke-width="1"/><text x="378.2" y="82.1" font-size="10" fill="#374151" font-weight="700" text-anchor="middle">v1.1</text><path d="M378.2 85.5 V87.8" stroke="#374151" stroke-width="0.9" fill="none"/><path d="M378.2 90.4 L376.3 87.2 L380.1 87.2 Z" fill="#374151"/><circle cx="356.7" cy="78.5" r="6" fill="#D97706"/><text x="356.7" y="82" font-size="10" fill="#FFFFFF" font-weight="700" text-anchor="middle">!</text></g>
+<g class="hpb-branch-front" data-hpb-kind="branch" data-hpb-id="X-1"><text x="204.6" y="129" font-size="10" fill="#374151" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round" stroke-opacity="0.9" paint-order="stroke" class="hpb-label">X-1 Crash on boot</text></g>
+<g class="hpb-branch-front" data-hpb-kind="branch" data-hpb-id="X-2"><text x="252.6" y="169" font-size="10" fill="#374151" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round" stroke-opacity="0.9" paint-order="stroke" class="hpb-label">X-2 Slow menu</text></g>
+<g class="hpb-now"><rect x="409.7" y="45" width="33" height="15" rx="2" fill="#0EA5E9"/><text x="426.2" y="56" font-size="10" fill="#FFFFFF" font-weight="700" text-anchor="middle">NOW</text></g>
+<g class="hpb-legend">
+<g class="hpb-legend-box" data-hpb-line="A"><rect x="16" y="92" width="92" height="16" rx="2" fill="#BAE6FD" stroke="#374151" stroke-width="0.8"/><text x="62" y="103.5" font-size="10" fill="#374151" font-weight="700" text-anchor="middle">Product A</text></g>
+<g class="hpb-legend-box"><rect x="16" y="132" width="92" height="16" rx="2" fill="#FB8A6E" stroke="#374151" stroke-width="0.8"/><text x="62" y="143.5" font-size="10" fill="#374151" font-weight="700" text-anchor="middle">Issue (X)</text></g>
+<g class="hpb-legend-stack"><path d="M101 148 V175" stroke="#374151" stroke-width="0.8" fill="none"/><rect x="94" y="175" width="14" height="10" rx="2" fill="#FB8A6E" stroke="#374151" stroke-width="0.8"/></g>
+</g>
+<text x="16" y="29" font-size="13" fill="#374151" font-weight="700" class="hpb-title">Forced release (R4 overridden)</text>
+</g>
+</svg>

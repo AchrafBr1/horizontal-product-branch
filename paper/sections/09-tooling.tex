@@ -1,0 +1,289 @@
+% ---------------------------------------------------------------------
+%  09-tooling.tex -- HPB Markup, the open-source renderer and the
+%  prototype in a product management portal. The layout algorithm, the
+%  data model and the implementation status are in appendix-a-formal.tex
+%  (app:layout, app:impl).
+% ---------------------------------------------------------------------
+\section{Tooling: HPB Markup and an Open-Source Renderer}
+\label{sec:tooling}
+
+% plain listings language for code snippets (HTML, TSX, shell)
+\lstdefinelanguage{hpbplain}{}
+
+A notation only spreads if drawing it costs nothing. Every diagram in this
+paper was drawn by hand with \texttt{hpb.sty} (\cref{app:package}). That is
+fine for a paper. It is not fine for a product line that gets a new branch
+every few days: nobody redraws a diagram by hand every week, and a diagram
+that is not redrawn is soon wrong.
+
+So HPB comes with tooling. \emph{HPB Markup} is a small text language in
+the spirit of Mermaid's \texttt{gitGraph}~\citep{mermaid}: you write a few
+lines of text and get an HPB diagram. A set of open-source packages renders
+that text as SVG in a plain HTML page, in React, Next.js or Vite, in
+Markdown documentation and from the command line. The toolkit is released
+under the MIT license; its code, documentation and the canonical
+situations of \cref{sec:practice} as test fixtures are published at
+\hpbrepo.\footnote{Package names in this section are those of version~1.0
+of the toolkit. If a name has to change when the packages are published,
+the repository lists the published names.} At the end of this section I
+describe the prototype I built inside the product management portal I
+work with, which draws the same diagrams directly from the trackers.
+
+% =====================================================================
+\subsection{Why a text language}
+\label{sec:tooling-why}
+
+Product documentation increasingly lives as text: Markdown pages, README
+files, wikis, pull requests. Text has three properties that pictures do not.
+It can be \emph{diffed}, so a reviewer sees that \texttt{X-212} was moved
+from \texttt{v2.1} to \texttt{v2.2} instead of comparing two images. It can
+be \emph{generated}, so a script can turn an export from any tracker into an
+HPB diagram. And it can be \emph{checked}, so the rules of the method are
+applied every time the diagram is drawn, not only when someone remembers
+them.
+
+The last point matters most to me. A generic drawing tool will happily
+show a branch that never closes, or a release that ships with open
+committed work. An HPB Markup document that does either produces a
+diagnostic. The language is not only a faster way to draw: it makes
+\cref{rule:origin,rule:closure,rule:time,rule:gate} hard to break by
+accident.
+
+% =====================================================================
+\subsection{Design principles}
+\label{sec:tooling-principles}
+
+\begin{itemize}[leftmargin=1.5em,itemsep=2pt,topsep=3pt]
+  \item \textbf{Statement order is time order.} Every statement that
+        creates an event gets the next column, like the ordinal columns of
+        the notation (\cref{sec:notation}). Dates such as \texttt{@2026-03}
+        are optional: they only feed the calendar ticks and are checked to
+        be non-decreasing.
+  \item \textbf{A sensible default fork, an explicit one for issues.}
+        Without \texttt{from}, a branch forks from the latest released
+        baseline of its line, which is the default of \cref{def:branch} for
+        improvements, tasks and lab work. For an issue, \cref{rule:origin}
+        requires the baseline in which it was observed: write it with
+        \texttt{from v1.4} unless it is the latest release.
+  \item \textbf{One terminal per branch.} A branch ends with a merge or a
+        discard, or stays open and is drawn up to NOW
+        (\cref{rule:closure}).
+  \item \textbf{The rules are checked, not assumed.} Merging into a
+        baseline that does not succeed the fork baseline, including the
+        fork itself, is an error (\cref{rule:time}). Releasing a planned
+        baseline that still has open targeted branches is an error
+        (\cref{rule:gate}), unless the release is marked \texttt{force}: the
+        violation is then recorded and stays visible as a warning badge.
+  \item \textbf{Forgiving to write.} Keywords are case-insensitive and have
+        aliases (\texttt{bug} for \texttt{issue}, \texttt{feature} for
+        \texttt{improvement}); identifiers can be any version or reference
+        such as \texttt{v1.0.1} or \texttt{Rev-B}; \texttt{\#} and
+        \texttt{\%\%} start comments; indentation is ignored.
+  \item \textbf{Clear errors.} Every diagnostic has a stable code, a line,
+        a column and a plain message. By default the renderer draws an
+        error box instead of throwing, so a broken diagram never breaks the
+        page around it.
+  \item \textbf{One visual contract.} The renderer draws the glyphs and
+        palette of \cref{sec:notation}, the same ones \texttt{hpb.sty}
+        draws, so a diagram on a web page and one in a printed report read
+        the same way.
+\end{itemize}
+
+% =====================================================================
+\subsection{A complete example}
+\label{sec:tooling-example}
+
+\Cref{fig:markup-example} shows a firmware line written in HPB Markup and
+the diagram it produces. It is the same situation as
+\cref{fig:software-line}, with different illustrative items. Line by line:
+
+\begin{itemize}[leftmargin=1.5em,itemsep=1pt,topsep=3pt]
+  \item \texttt{hpb} gives the diagram a title, and \texttt{line} declares
+        the product line \emph{Product A}.
+  \item \texttt{release v1.0} creates the first released baseline.
+  \item \texttt{improvement I-21} and \texttt{issue X-101} open two
+        branches. Neither says where it starts, so both fork from
+        \texttt{v1.0}, the latest release. The improvement goes above the
+        main line, the issue below it. X-101 has no title: its short life
+        leaves no room for a label (layout rule~\ref{lay:labels}).
+  \item \texttt{release v1.0.1 merges X-101} publishes a patch that closes
+        the defect. The next two branches fork from \texttt{v1.0.1}, now
+        the latest release.
+  \item \texttt{release v1.1} and \texttt{release v1.2} close the remaining
+        work. T-8 runs across two releases on the task lane, below the
+        issue lane.
+\end{itemize}
+
+\noindent Two layout conventions of the renderer are worth stating. First,
+the merge terminals of all branches closed by one
+\texttt{release \dots{} merges} statement share one column, just before
+the baseline; they sit on different lanes, which is the exception allowed
+by layout rule~\ref{lay:ordinal}. Second, NOW is drawn only when the
+diagram has something in the future (planned baselines, open branches, or
+merges awaiting release); a pure history such as this one has no NOW
+marker. The renderer stacks extra lanes per type, outward from the main
+line, and packs them first-fit; the preference of
+rule~\ref{lay:onelane} for putting still-open branches on the outer lanes
+is not implemented yet (the full algorithm is in \cref{app:layout}).
+
+\input{figures/markup-example}
+
+The other canonical situations are equally short. A release gate, a
+discard with its rationale, and a hardware revision that forks a new
+reference are written like this (the full language is in
+\cref{app:markup}):
+\begin{lstlisting}[style=hpb]
+now
+plan v2.1 @2026-12 targets I-50, X-211, X-212
+discard I-60 "not viable: BOM cost"
+release RevB hardware merges L-5, I-30
+line RB "DMS-4000 Rev B" from RevB
+\end{lstlisting}
+
+\paragraph{What the Markup checks, and what it does not.}
+The Markup checks a structural version of the gate rule: no branch
+targeted at a baseline may still be open when that baseline is released.
+It does not model verification evidence, so ``verified'' in the sense of
+\cref{rule:gate} remains a human check at the gate review. A
+\texttt{release \dots{} merges} statement plays the role of publication
+(\cref{def:gate}), with the listed branches as its targeted set. A
+\texttt{force} release records a deliberate violation: the resulting model
+is not well formed under \cref{rule:gate}, and the diagram says so with a
+\texttt{W-R4-FORCED} warning and a ``!'' badge.
+
+% =====================================================================
+\subsection{Packages}
+\label{sec:tooling-packages}
+
+The renderer is a small set of TypeScript packages
+(\cref{tab:packages}). The core has no runtime dependencies and produces a
+plain SVG string, so it runs the same way in a browser, in Node.js and in
+server-side rendering.
+
+\begin{table}[tbp]
+  \centering
+  \small
+  \caption{HPB Markup toolkit, version 1.0 (MIT license).}
+  \label{tab:packages}
+  \renewcommand{\arraystretch}{1.12}
+  \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{2.6cm}
+      >{\raggedright\arraybackslash}X
+      >{\raggedright\arraybackslash}p{3.5cm}@{}}
+    \toprule
+    \textbf{Package} & \textbf{What it does} & \textbf{Typical host} \\
+    \midrule
+    \texttt{@hpb/core}
+      & \texttt{parse}, \texttt{validate}, \texttt{buildModel} (checks
+        R1--R4, returns diagnostics), \texttt{layout}, \texttt{renderSVG}
+        (pure string, no DOM).
+      & Any JavaScript runtime, SSR, build scripts. \\
+    \addlinespace
+    \texttt{@hpb/web}
+      & Mermaid-style auto-render of \texttt{pre.hpb} and
+        \texttt{code.language-hpb} blocks; custom element
+        \texttt{<hpb-diagram>}; API \texttt{initialize}, \texttt{run},
+        \texttt{render}; \texttt{dist/hpb.min.js} exposes
+        \texttt{window.HPB} for a \texttt{<script>} tag.
+      & Plain HTML pages, wikis, static sites. \\
+    \addlinespace
+    \texttt{@hpb/react}
+      & \texttt{<HpbDiagram code=\dots{} />}, SSR-safe; optional hover
+        highlighting, \texttt{onNodeClick} and \texttt{onError}.
+      & React, Next.js (App Router), Vite. \\
+    \addlinespace
+    \texttt{@hpb/cli}
+      & \texttt{hpb render} to SVG and \texttt{hpb validate} for
+        continuous integration.
+      & Terminals, CI pipelines, document builds. \\
+    \addlinespace
+    \texttt{remark-hpb}
+      & remark (unified) and markdown-it plugins that render
+        \texttt{hpb} fenced code blocks as inline SVG.
+      & Markdown and MDX, documentation sites, static generators. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\paragraph{In a plain HTML page.}
+Load one script and write the diagram as text. Every matching block is
+replaced by its SVG when the page loads.
+\begin{lstlisting}[language=hpbplain]
+<script src="https://unpkg.com/@hpb/web@1.0.0/dist/hpb.min.js"></script>
+<pre class="hpb">
+line A "Product A"
+release v2.0
+issue X-211 "Battery drain"
+release v2.0.1 merges X-211
+</pre>
+\end{lstlisting}
+
+\paragraph{In React, Next.js or Vite.}
+The component renders the SVG string during render and never touches
+\texttt{window}, so it works in server-side rendering. In the Next.js App
+Router, a server component can call \texttt{renderSVG} directly; the
+interactive component is a client component.
+\begin{lstlisting}[language=hpbplain]
+import { HpbDiagram } from "@hpb/react";
+
+<HpbDiagram code={source} theme="default"
+            onNodeClick={(n) => openItem(n.id)} />
+\end{lstlisting}
+
+\paragraph{From the command line.}
+\texttt{hpb validate} returns a non-zero exit code when a document breaks
+a rule, which makes it usable as a check in a documentation pipeline.
+\begin{lstlisting}[language=hpbplain]
+hpb render product-a.hpb -o product-a.svg --theme mono
+hpb validate product-a.hpb
+\end{lstlisting}
+
+\paragraph{Accessibility and print.}
+The SVG carries a title and a description, every node has its own
+\texttt{<title>}, and no text is smaller than 10\,px at scale one. The
+\texttt{mono} theme renders in grayscale with letters and line styles only,
+which is the redundant encoding of \cref{sec:notation} put to work.
+
+% =====================================================================
+\subsection{Prototype implementation in a product management portal}
+\label{sec:implementation}
+
+A method that needs a new tool, and a migration of all existing work into
+it, rarely gets adopted. I did not want HPB to be one more system to keep
+in sync, so I built it as a thin layer on top of the trackers in which
+improvements, defects, tasks and laboratory evaluations were already
+managed, as a module of the product management portal I use daily.
+
+\paragraph{An overlay, not a migration.}
+The trackers stay exactly as they are and remain the system of record for
+the work itself. HPB adds a few tables that store only what the trackers
+do not know: the product lines and their family tree, the baselines, the
+attachment of each tracker item to a line as a branch with its target and
+terminal, and comments attached to exactly one node
+(\cref{app:impl}). Because tracker items are referenced and never copied,
+adopting HPB needs no migration, and removing it leaves the trackers
+untouched.
+
+\paragraph{Derived mode: a picture on day one.}
+The same property gives a read-only \emph{derived mode} for products
+whose overlay is still empty. Baselines are rebuilt from existing release
+records, branches from the tracker items linked to the product, and
+terminals from tracker statuses. A completed item with no link to a
+release is drawn as closed without a baseline: a violation of
+\cref{rule:closure} that the diagram shows instead of hiding. On the first
+day, derived mode gives a retrospective picture of the product and a list
+of the gaps the method then closes.
+
+\paragraph{The diagram as the place where decisions happen.}
+In the portal the diagram is not just a view. One action on a line
+creates a typed item in its tracker and attaches it as a branch, so it has
+a type and an origin from the first second
+(\cref{rule:origin,rule:typed}). Targeting offers only planned baselines;
+a discard asks for a rationale; publishing a planned baseline lists
+everything targeted at it and merges the set in one operation; a hardware
+baseline that changes the reference records the new line it creates
+(\cref{rule:lineage}); and every line, baseline and branch has its own
+comment thread and a link back to the item in its tracker
+(\cref{rule:discussion}). Several rule checks are designed but not yet
+enforced in the prototype; \cref{app:impl} lists them honestly. Until they
+are, the violations are at least visible in the diagram, and HPB Markup
+already enforces R1--R4 for anyone who draws with it.

@@ -1,0 +1,163 @@
+% ---------------------------------------------------------------------
+%  01-introduction.tex
+% ---------------------------------------------------------------------
+\section{Introduction}
+\label{sec:introduction}
+
+I have spent more than seven years as a senior product manager responsible
+for complete products: the hardware, the firmware that runs on it and the
+software around it. The portfolio is large and it moves all the time. New
+references come in, others are replaced or reach end of life, customers
+and sales ask for improvements, competitors force changes, and the product
+is expected to get better continuously, not once a year. That kind of job
+is less about any single project and more about keeping many product
+states, and the work around them, under control at the same time.
+
+Over those years I used every method that product organizations rely on
+today: backlogs, Kanban boards, Scrum, roadmaps and Gantt charts,
+Stage-Gate reviews, engineering change orders in PLM, and, on the software
+side, git and git-flow. Each of them is good at something. None of them
+answered the questions I actually had to answer, every week, about my
+products.
+
+\subsection{The questions I could not answer}
+\label{sec:intro-questions}
+
+Take an illustrative product, the DMS-4000, a fictitious smart door
+controller with its own hardware, firmware and companion software. On an
+ordinary day its product manager is asked things like these:
+\begin{itemize}[leftmargin=1.5em,itemsep=2pt,topsep=3pt]
+  \item \emph{A customer reports a defect.} Was it seen on firmware v1.3 or
+        on v1.4? Is it already fixed in a later release, or is someone
+        still working on it?
+  \item \emph{The next release is being planned.} Two improvements and
+        three defects are open. Which of them are committed to v1.5? Can
+        v1.5 ship if one of them is not finished?
+  \item \emph{A component shortage forces a hardware revision.} Which open
+        work moves to the new reference? Which stays with the units already
+        installed? How long do we keep maintaining the old one?
+  \item \emph{An auditor, a key customer or the support team asks} what
+        went into v1.4, and why a reported problem was closed without a
+        fix.
+\end{itemize}
+
+None of these questions is unusual. Yet with the usual tools the answer
+means opening a tracker, a spreadsheet, a PLM change order and somebody's
+memory, and stitching them together by hand. What is missing is always the
+same thing: the link between a piece of work and the \emph{product states}
+it belongs to. I kept running into three blind spots:
+\begin{enumerate}[label=(\roman*),leftmargin=2.2em,itemsep=1pt,topsep=3pt]
+  \item \textbf{Origin.} From which version or hardware reference did this
+        work start?
+  \item \textbf{Parallelism.} What else is running on the same product, and
+        on which line, at the same time?
+  \item \textbf{Closure.} Which concrete version incorporated the result,
+        or, if none did, why was it abandoned?
+\end{enumerate}
+Version fields, release milestones and change-order references capture
+fragments of this. They are attributes of individual records, not a
+structure you can look at, check and plan with. The result is familiar to
+anyone in the role: release notes written by hand, defects that cannot be
+traced to the version in which they escaped, versions shipped while
+committed work was quietly still pending, and hardware revisions whose
+relation to the previous reference lives only in people's heads.
+
+\paragraph{When the gap became obvious.}
+% AUTHOR: the vignette below is a composite written from the situations
+% described above, with no company, product or number. Replace it with a
+% real, anonymised story from your own practice if you have one you can
+% tell (4-6 sentences, first person, no confidential details).
+The gap did not show up in a single project; it showed up as a pattern.
+A composite of it, with every detail removed, goes like this. A unit comes
+back from the field with a fault, on a hardware reference that had been
+revised a few months earlier. Support asks a simple question: is the
+firmware fix for this fault already in the build that ships with the new
+revision? The fix exists, the ticket is closed and the revision is
+released, yet nobody in the room can say whether the one went into the
+other without opening three tools and asking two people. Every time I saw
+that scene repeat, the missing piece was the same: a record of which
+product state each piece of work started from and ended in.
+
+\subsection{What HPB is}
+\label{sec:intro-what}
+
+Software engineering solved a structurally identical problem long ago, for
+code. In branch-and-merge version control~\citep{chacon2014progit} every
+line of work forks from a known commit, runs in parallel with others and
+is merged back when it is done; branching models such as
+git-flow~\citep{driessen2010gitflow} turned that graph into a picture every
+developer recognizes. My proposal is simple: \emph{apply the same model to
+the product, not to the code}.
+
+The \emph{Horizontal Product Branch} (HPB) methodology draws each product
+as a horizontal main line of baselines (its released and planned
+versions). Every improvement, defect, task or laboratory evaluation is a
+typed branch that forks from a released baseline and ends in exactly one
+of two ways: merged into a named version, or discarded with a written
+reason. A hardware revision that creates a new reference forks the line
+itself, so the new reference keeps its ancestry. A planned version is a
+gate: it does not ship while committed work is still unverified. The name
+comes from the drawing: time runs left to right, and the product is the
+horizontal line from which all work branches off and to which it returns.
+
+An HPB branch is not a code branch. It is a unit of \emph{change intent}
+on the product, which may be implemented by many commits in several
+repositories, by a laboratory campaign or by a hardware redesign. HPB
+records where that intent started, what happened to it and where it ended.
+Throughout the paper, a \emph{product line} means one product reference
+followed over time, not a family of variants in the sense of software
+product line engineering.
+
+HPB did not come from a single insight. It is the result of accumulating
+those blind spots over years of running a real portfolio, trying to patch
+them with each tool in turn, and noticing that the patches always pointed
+to the same missing structure. I have since built a working prototype of
+it inside the product management portal I use, and the improvement points
+it captures can be applied well beyond my own products: to any
+organization that ships identifiable versions of a product over time,
+and especially to products where hardware, firmware and software evolve
+together and several references coexist in the field.
+
+\subsection{What this paper gives you}
+\label{sec:intro-gives}
+
+This is a methodology paper. It describes a method and everything you need
+to apply it consistently; it does not report a controlled study. It
+contains:
+\begin{enumerate}[label=\textbf{\arabic*.},leftmargin=2em,itemsep=2pt,topsep=3pt]
+  \item \textbf{The method.} A small model (product lines, baselines,
+        typed branches, merges, discards, line forks and release gates)
+        and seven rules, R1--R7, that keep the graph honest
+        (\cref{sec:onepage,sec:model}). The full formal model, with
+        properties and proof sketches, is in \cref{app:formal}.
+  \item \textbf{A standard notation.} Lanes, glyphs and colors with
+        redundant encoding, plus layout rules, so that an HPB diagram looks
+        the same whoever draws it (\cref{sec:notation}), shown on the
+        situations a product manager meets in practice
+        (\cref{sec:practice}).
+  \item \textbf{An operating guide and metrics.} Practices, cadence, roles,
+        coexistence with Scrum, Kanban, Stage-Gate and PLM, an adoption
+        path you can start on Monday (\cref{sec:operating}), and flow and
+        quality metrics computed directly from the graph
+        (\cref{sec:metrics}).
+  \item \textbf{Tooling.} HPB Markup, a text language in the spirit of
+        Mermaid that turns a few lines of text into an HPB diagram, with an
+        open-source renderer for plain HTML, React, Next.js, Vite and the
+        command line, and a prototype built into a product management
+        portal (\cref{sec:tooling}).
+\end{enumerate}
+All examples, including the DMS-4000 and ``Product A'', are fictitious and
+only illustrate the method. I make no claims about measured effectiveness;
+\cref{sec:limitations} is explicit about what has not been shown and how
+an organization can evaluate HPB for itself.
+
+\subsection{How to read this paper}
+\label{sec:intro-read}
+
+If you have ten minutes, read \cref{sec:gaps} for the problem and
+\cref{sec:onepage} for the whole method on one page. If you want to apply
+it, add \cref{sec:notation,sec:practice,sec:operating}. If you want to
+build tools for it, go to \cref{sec:tooling} and
+\cref{app:formal,app:markup,app:package}. \Cref{app:card} is a
+quick-reference card of the notation you can print and pin next to your
+desk.

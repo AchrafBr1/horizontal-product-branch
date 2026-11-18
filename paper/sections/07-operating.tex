@@ -1,0 +1,411 @@
+% ---------------------------------------------------------------------
+%  07-operating.tex -- Running HPB: the operating guide
+%  Practices, intake and typing, cadence, roles, coexistence with
+%  existing frameworks, adoption path, anti-patterns.
+% ---------------------------------------------------------------------
+\section{Running HPB: The Operating Guide}
+\label{sec:operating}
+
+The model says what a correct HPB graph is, and the notation says how to
+draw it. Neither says who changes the graph, when, and on what evidence.
+This section does. The operating guide is deliberately small: a handful
+of practices, one intake convention, four recurring meetings, roles that
+already exist, and an adoption path. It is meant to be started by one
+product manager on one product line and to scale by repetition, not by
+adding ceremony. It prescribes \emph{what must be recorded} at each
+decision; how engineering organizes its own work stays with whatever
+team process is already in place (\cref{subsec:method-coexistence}).
+
+\subsection{Four principles}
+\label{subsec:method-principles}
+
+\begin{enumerate}[label=\textbf{M\arabic*},leftmargin=*,itemsep=2pt]
+  \item \textbf{Record at the decision, not after it.} Every change to the
+    graph matches a decision that is already being taken: accepting a
+    request, committing it to a release, publishing a version, dropping
+    work. HPB attaches the record to that moment, so the graph is a
+    by-product of deciding, not an extra reporting duty.
+  \item \textbf{One accountable owner per node.} Every line, baseline and
+    branch has exactly one accountable role. Many people contribute; one
+    answers for it.
+  \item \textbf{Closure is explicit and evidenced.} Nothing disappears.
+    A branch either merges into a named baseline or is discarded with a
+    written reason (\cref{rule:closure}). This is the principle that
+    produces traceability, and the one list-based trackers break most
+    easily, because there an item is simply set to ``closed''.
+  \item \textbf{History is fixed, the plan is not.} Everything left of NOW
+    is a record and is corrected only through audited events. Everything
+    right of NOW is a plan and is expected to change. Plan changes should
+    be cheap; history changes should be visible.
+\end{enumerate}
+
+\subsection{Practices}
+\label{subsec:method-practices}
+
+\Cref{tab:practices} lists the practices. Each one has a trigger, the
+roles involved, the rule it enforces and what it leaves in the graph.
+The point of the table is that the rules are not checked in a separate
+compliance step: each rule is enforced at the one moment in the workflow
+where it can be broken.
+
+\begin{table}[tbp]
+  \centering
+  \small
+  \caption{HPB practices. Each practice runs at a clear trigger and enforces
+    at least one rule (R1--R7). Roles: A accountable, R responsible (if
+    different), C consulted or approving. PM product manager; RM release or
+    program manager; CCB change control board; Eng R\&D/engineering; QA
+    quality assurance or laboratory; QR quality or regulatory function.}
+  \label{tab:practices}
+  \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{2.0cm}
+                                  >{\raggedright\arraybackslash}X
+                                  >{\raggedright\arraybackslash}p{2.2cm}
+                                  >{\raggedright\arraybackslash}p{1.0cm}
+                                  >{\raggedright\arraybackslash}X@{}}
+    \toprule
+    \textbf{Practice} & \textbf{Trigger} & \textbf{Roles} & \textbf{Rules} & \textbf{Leaves in the graph} \\
+    \midrule
+    Fork at intake
+      & A request, defect report, task, lab evaluation or supplier notice is accepted at triage.
+      & A: PM; R: support, Eng, QA
+      & R1, R6
+      & Typed branch with origin baseline (and configuration), opening date, owner. \\
+    \addlinespace
+    Target at planning
+      & Release planning for a planned baseline; a priority change.
+      & A: PM; C: RM
+      & R4, R7
+      & Target baseline; dashed continuation; earlier targets kept as history. \\
+    \addlinespace
+    Verify
+      & A candidate of the target (build, prototype, pilot lot) is tested.
+      & A: QA; R: Eng
+      & R4, R7
+      & Pass/fail step citing the candidate; a pass makes the branch verified. \\
+    \addlinespace
+    Gate review
+      & Freeze or target date of a planned baseline or launch bundle.
+      & A: RM; C: PM, Eng, QA
+      & R4
+      & Decision on the baseline: release, slip with new date, or move/discard the unverified members. \\
+    \addlinespace
+    Merge at release
+      & The baseline is published (build released, or change order approved with production effectivity).
+      & A: RM; R: Eng
+      & R2, R3
+      & Merge of every verified member; release notes derived. \\
+    \addlinespace
+    Discard with reason
+      & Not viable, duplicate, not reproducible, superseded, out of scope; or resolved without a product baseline.
+      & A: PM; R: owner; C: QR if safety or regulatory
+      & R2, R7
+      & Discard terminal with reason class, category and text. \\
+    \addlinespace
+    Reopen (audited)
+      & A closure was recorded in error.
+      & A: PM; C: second approver
+      & R2, R7
+      & Reopen event with reason and actors; original terminal kept. \\
+    \addlinespace
+    Line fork
+      & A hardware change fails the interchangeability test.
+      & A: CCB; R: PM, hardware Eng
+      & R5
+      & Diamond baseline, child line with parent link, change-order reference, parent life-cycle milestones. \\
+    \addlinespace
+    Record step
+      & A sub-task completes, a test runs, an effectiveness check is made.
+      & A: Eng or QA
+      & R6, R7
+      & Step (done/pending, pass/fail) with evidence attached. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\paragraph{Fork at intake.}
+A request becomes a branch only when it is accepted at triage. At that
+moment three facts are fixed: its type, its origin baseline and its
+opening date (\cref{rule:origin}). For an issue, the origin is the
+version in which the defect was \emph{seen}: the firmware version read
+from the device, the software build, the hardware revision on the label.
+It is mandatory. If nobody knows it, clarify before accepting, or accept
+it with the origin flagged as \emph{inferred}; when the defect depends on
+a combination of hardware and firmware, record the configuration too.
+Triage is also where a request can be rejected before it ever becomes a
+branch, which keeps the graph free of noise.
+
+\paragraph{Granularity and typing.}
+Diagrams are only comparable between product managers if the same kinds
+of request become branches with the same types. \Cref{tab:intake} is the
+default convention. A branch is a \emph{release-note-worthy unit of
+change}: an epic or feature, a customer-visible defect, a lab campaign.
+User stories, sub-tickets and commits stay on team boards; they may
+appear on a branch as steps (\cref{rule:typed}). Security, regulatory
+relevance, safety or a specific customer are \emph{attributes} of a
+branch, not extra types, so the four lanes stay stable.
+
+\begin{table}[tbp]
+  \centering
+  \small
+  \caption{Default intake and typing convention. A request becomes one
+    branch of the listed type; attributes are set in addition.
+    Organizations may refine the table, but should publish it with their
+    diagrams.}
+  \label{tab:intake}
+  \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}X
+                                  >{\centering\arraybackslash}p{1.0cm}
+                                  >{\raggedright\arraybackslash}p{5.6cm}@{}}
+    \toprule
+    \textbf{Request} & \textbf{Type} & \textbf{Origin baseline; attributes} \\
+    \midrule
+    New or changed customer-visible capability (epic, feature) & $\mathsf{I}$ & latest release; customer if requested by one \\
+    Defect seen in a released version & $\mathsf{X}$ & version where it was seen (mandatory); configuration if relevant \\
+    Security vulnerability & $\mathsf{X}$ & version where it was seen; attribute \emph{security} \\
+    Regulatory or certification change & $\mathsf{T}$ & latest release; attribute \emph{regulatory}; $\mathsf{I}$ if it adds a capability \\
+    Customer-specific request & $\mathsf{I}$ or $\mathsf{X}$ & as above; attribute \emph{customer}, with the commitment made \\
+    Cost-down redesign, component substitution & $\mathsf{L}$ & latest release; line fork only if not interchangeable \\
+    Supplier change or end-of-life notice & $\mathsf{L}$ or $\mathsf{T}$ & latest release; $\mathsf{L}$ to qualify an alternative, $\mathsf{T}$ for a last-time buy \\
+    Field return with failure analysis & $\mathsf{X}$ & version of the returned unit; RMA evidence as steps \\
+    Internal work (certificates, tooling, documentation) & $\mathsf{T}$ & latest release \\
+    User story, sub-ticket, single test run & -- & a step of its branch, not a branch \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\paragraph{Target at planning.}
+Targeting commits an open branch to a planned version. It is the only
+practice that is expected to repeat for the same branch: when priorities
+change, the branch is re-targeted and the old target stays visible as a
+faded dashed line (\cref{fig:discard}). My rule of thumb: target a branch
+only when its owner can state what ``done'' means for the merge. A target
+without an acceptance condition is a wish, and wishes inflate the gate.
+Before committing the targeted set, compare its size with what recent
+releases of the same kind actually contained (\cref{tab:metrics}), and check
+that every dependency of a member is targeted at the same or an earlier
+version.
+
+\paragraph{Gate review.}
+At the freeze date (or the target date, for teams without a freeze) the
+release manager, with product, engineering and quality, goes through the
+targeted set. Each member is verified, not yet verified, or no longer
+wanted; each dependency is satisfied or not. \Cref{rule:gate} forbids
+publishing while any member is unverified or depends on unreleased work,
+so the review must end in one of three recorded outcomes:
+\emph{release}, if everything is verified; \emph{slip}, with a new date
+and the reason written on the baseline; or \emph{descope}, moving or
+discarding the unverified members. The rule does not choose for you. It
+forces the choice to be made and written down. \Cref{fig:release-gate}
+shows the situation the review resolves.
+
+\paragraph{Discard with reason.}
+Discarding is a normal outcome, not a failure. The engineering-change
+literature treats the rejection of proposed changes as part of the change
+process \citep{jarratt2011ec}; HPB makes those decisions visible instead of
+hiding them in a generic ``closed''. The reason is picked from the two
+closed lists of \cref{sec:model-closing}, which makes discards countable,
+plus free text and, for a duplicate, a link to the surviving branch, which
+makes them auditable. Discarding a branch marked \emph{safety} or
+\emph{regulatory} also needs the approval of the quality or regulatory
+function.
+
+\paragraph{The other practices.}
+\emph{Verify}: whoever ran the test records the passed step with the
+candidate it ran on (a release-candidate build, a prototype or a pilot
+lot); that record replaces the familiar ``yes, it's in the release''.
+\emph{Merge at release}: publishing a version merges all its verified
+targeted branches at once, and a hardware baseline cites its change
+order. \emph{Reopen} needs a second approver and keeps the original
+terminal; a fix that regresses later is a \emph{new} issue from the
+version where the regression is seen. \emph{Line fork}: when the change
+control board approves a new reference, the parent gets dated life-cycle
+milestones at the same time; leaving them open is the surest way to
+accumulate maintenance nobody planned for. \emph{Record step}: sub-tasks,
+test runs and effectiveness checks are steps, so a lab branch becomes an
+evidence trail (\cref{fig:hardware-fork,fig:rma}).
+
+\subsection{Cadence}
+\label{subsec:method-cadence}
+
+The practices are event-driven, but most events land in four recurring
+meetings. Adapt the frequencies to the release rhythm of your product;
+keep the order.
+
+\begin{description}[leftmargin=0pt,itemsep=3pt,font=\normalfont\bfseries]
+  \item[Weekly triage (30--45 minutes).] New requests from customers,
+    support, sales, engineering and the lab. Practices: fork at intake;
+    discard obvious duplicates. Read the diagram below the line first (new
+    issues and their origins often reveal a bad release early), then above
+    it. End by reviewing open, untargeted branches older than an agreed
+    threshold (age of open work, \cref{tab:metrics}).
+  \item[Release planning (per planned version).] Open branches, capacity
+    from the team process, dependencies, customer commitments. Practice:
+    target at planning, with the size and dependency checks. Output: the
+    targeted set of the next version or launch bundle and, optionally,
+    provisional targets for the one after. Planning only targets work that
+    already exists as a branch, so every planned change has a recorded
+    origin.
+  \item[Gate review (at freeze or target date).] Gate review, then merge
+    at release if the decision is to ship. The diagram keeps it short: the
+    dashed lines entering the gate without a passed step are, by
+    construction, exactly the open questions.
+  \item[Line review (monthly or after each release).] Release
+    contents, escaped defects, installed base and rollout where available,
+    unported fixes, and the metrics of \cref{sec:metrics}. Decisions:
+    life-cycle milestones of maintained lines and streams, whether a patch
+    is needed, which fixes must be ported, and whether recent discard
+    reasons point to a problem in intake quality.
+\end{description}
+
+\subsection{Roles}
+\label{subsec:method-roles}
+
+HPB introduces no new job titles. It gives accountability for graph
+elements to roles that product organizations already have
+(\cref{tab:practices}).
+
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+  \item \textbf{Product manager.} Owns the product lines and the content of
+    planned versions: triage, typing, targeting, discards. Can delegate,
+    as long as the actor of every transition is recorded.
+  \item \textbf{Release or program manager.} Owns dates and gates: runs the
+    gate review and publishes versions and launch bundles.
+  \item \textbf{Change control board.} Where one exists, approves change
+    orders, and therefore hardware baselines and line forks; the HPB
+    baseline references the approved order.
+  \item \textbf{R\&D / engineering.} Owns improvement and task branches
+    once accepted, and records their steps.
+  \item \textbf{Quality / laboratory.} Owns lab branches, verification
+    steps and their evidence; is consulted at every gate. The quality or
+    regulatory function approves discards of safety- or
+    regulation-relevant issues and the closure of corrective actions.
+  \item \textbf{Support and field service.} The main source of issues.
+    Owns the quality of the reported version and configuration, which is
+    what escaped-defect counts depend on, and the installed-base data
+    where it is kept.
+\end{itemize}
+
+\noindent In a small organization one person wears several hats. That is
+fine, as long as the role under which each action is taken is visible in
+the audit trail. Two segregations of duty stay even then: reopens and
+safety- or regulation-relevant discards need a second approver.
+
+\subsection{Living with Scrum, Kanban, Stage-Gate and PLM}
+\label{subsec:method-coexistence}
+
+HPB is a \emph{product-level} view. It does not schedule engineers, set
+team WIP limits or replace the boards teams use every day. It sits above
+them and answers what they are not designed to answer: from which product
+state work started, which version closed it, and what else was in flight
+on the same product at the same time. \Cref{tab:coexistence} gives the
+mapping; \cref{fig:same-data} shows the same items in both views.
+
+\begin{table}[tbp]
+  \centering
+  \small
+  \caption{How HPB maps onto the units of common frameworks. HPB adds the
+    product-state anchors (origin and closing baseline) without replacing
+    the framework's own planning unit.}
+  \label{tab:coexistence}
+  \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{2.0cm}
+                                  >{\raggedright\arraybackslash}X
+                                  >{\raggedright\arraybackslash}X@{}}
+    \toprule
+    \textbf{Framework} & \textbf{Its unit} & \textbf{In HPB} \\
+    \midrule
+    Scrum
+      & Product backlog item; sprint; increment \citep{schwaber2020scrum}.
+      & A backlog item is (part of) a branch. A sprint is a team time-box,
+        \emph{not} a baseline; an increment becomes a baseline only when it
+        is released to customers. \\
+    \addlinespace
+    Kanban
+      & Card; column; WIP limit \citep{anderson2010kanban}.
+      & A card is a branch or a step of one. Columns refine the HPB states
+        open and targeted; ``done'' becomes a merge only once the closing
+        version is published. \\
+    \addlinespace
+    Stage-Gate
+      & Project; stage; go/kill gate \citep{cooper1990stagegate}.
+      & A new-reference project is lab and improvement work ending in a
+        hardware baseline and a line fork. A \emph{kill} is a discard with
+        reason. Stage-Gate gates decide whether to keep investing; HPB
+        gates decide whether a release is complete. \\
+    \addlinespace
+    PLM / CM
+      & Change order; configuration baseline \citep{stark2015plm,iso10007}.
+      & A released HPB baseline references the change order or
+        configuration baseline that formally defines it. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+The most common confusion is the sprint: it is a team time-box, not a
+baseline, because firmware and hardware ship less often than teams finish
+sprints. In practice the product owner usually holds the HPB product
+manager role, and board and diagram share the same tracker items, so
+there is no double entry.
+
+\paragraph{Regulated contexts.}
+HPB does not replace configuration management as defined in IEEE~828 and
+ISO~10007 \citep{ieee828,iso10007}, nor change processes in a PLM system
+\citep{stark2015plm}; it adds the planning view and the link between the
+intent of a change (the branch) and the configuration that realized it
+(the baseline). Used as evidence, it needs at least append-only history,
+identified actors and approvers on every closing decision, links to the
+requirement, risk and test records, and a per-version export. Whether
+that satisfies a particular regulation is outside the scope of this paper.
+
+\subsection{Start on Monday: an adoption path}
+\label{subsec:method-adoption}
+
+HPB needs no migration and no new tool on day one. This is the sequence I
+recommend.
+
+\paragraph{Week 1: one line, drawn by hand.}
+Pick \emph{one} product line with parallel work and a release coming up,
+not the whole portfolio. Write down its last three to five released
+versions and where the line came from. Go through the open items in your
+trackers and record, for each release-note-worthy one, its type and its
+best-known origin, marking guesses as \emph{inferred}. Create the next
+planned version and target what is already promised for it: the gate is
+now visible. Draw it, on a whiteboard, with \texttt{hpb.sty}
+(\cref{app:package}) or in a few lines of HPB Markup (\cref{sec:tooling}),
+and show it at your next triage.
+
+\paragraph{Month 1: run the cadence.}
+Apply \emph{fork at intake} to every new request: no branch without a type
+and an origin. Run weekly triage on the diagram, issues first. Run the
+first gate review at the next freeze and record its outcome. When the
+version ships, merge its verified branches; from then on, release notes
+are generated, not written. Publish your intake convention
+(\cref{tab:intake}) with your changes.
+
+\paragraph{Quarter 1: extend and measure.}
+After a full release cycle, add the next lines, with their hardware
+revisions, line forks and maintained streams. Set life-cycle milestones
+for every old reference still maintained. Hold the first line review with
+the metrics of \cref{sec:metrics}, and connect HPB to your tracker so the
+diagram is generated from the items, not maintained by hand.
+
+\subsection{Anti-patterns}
+\label{subsec:method-antipatterns}
+
+These are easy to spot in the diagram, and each one tells you which
+practice is being skipped.
+
+\begin{itemize}[leftmargin=*,itemsep=1pt]
+  \item \emph{Silent closure.} A tracker item is closed but its branch has
+    no merge or discard terminal (breaks \cref{rule:closure}).
+  \item \emph{Eternal branch.} An open, untargeted branch that keeps
+    outliving releases: usually a discard nobody dared to decide.
+  \item \emph{Gate stuffing.} A targeted set much larger than recent
+    releases, which turns every gate review into a slip.
+  \item \emph{Floating evidence.} Test reports and decisions kept outside
+    the graph (breaks \cref{rule:discussion}).
+  \item \emph{In-place reference edit.} A non-interchangeable hardware
+    change without a new line (breaks \cref{rule:lineage}).
+  \item \emph{Unported fix.} A merged issue known to affect another
+    maintained stream, with no port and no decision not to port.
+  \item \emph{Shipping ahead of a dependency.} A dependency connector that
+    points to the right of the gate (blocked by \cref{rule:gate}).
+\end{itemize}

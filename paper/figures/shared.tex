@@ -1,0 +1,61 @@
+% F13 -- Condition I: firmware shared by two hardware references, with a
+% dependency and a coordinated launch.  Illustrative data.  Requires hpb.sty
+% v1.1.  Canvas: document defaults.  Three lines, each in its own band:
+% hardware Rev B (top), the shared firmware line (middle), hardware Rev A.
+\begin{figure}[t]
+\centering
+\hpbfit{%
+\begin{hpbgraph}
+  % ---- hardware line DMS-4000 Rev B (y = 2.7)
+  \hpbmainline{0}{10}[2.7]
+  \hpbmainline*{10}{17.7}[2.7]
+  \hpborigin{0}{DMS-4000\\Rev B}[2.7]
+  \hpbrelease{2}{B.1}[2.7]
+  \hpbplanned{13}{B.2}{Apr 2027}[2.7]
+  \hpbseparator{1.85}{-2.4}{17.7}
+  % ---- shared firmware line (y = 0) with its lanes
+  \hpblane{1}{imp}{Improvement (I)}{0}{17.7}
+  \hpblane{-1}{iss}{Issue (X)}{0}{17.7}
+  \hpbmainline{0}{10}
+  \hpbmainline*{10}{17.7}
+  \hpborigin{0}{DMS firmware}
+  \hpbrelease{3}{v2.0}
+  \begin{pgfonlayer}{hpbfront}% applies-to set, left of the tag (right side
+    % is reserved for upward forks)
+    \node[font=\sffamily\itshape\fontsize{6.5}{7.5}\selectfont, text=hpbMuted,
+          anchor=east, inner sep=1pt] at ([xshift=-1.5pt]hpb@t.west)
+      {applies to A, B};
+  \end{pgfonlayer}
+  \hpbplanned[applies to A, B]{14}{v2.1}{Apr 2027}
+  \hpbseparator{-1.85}{-2.4}{17.7}
+  % ---- hardware line DMS-4000 Rev A (y = -2.7)
+  \hpbmainline{0}{10}[-2.7]
+  \hpbmainline*{10}{17.7}[-2.7]
+  \hpborigin{0}{DMS-4000\\Rev A}[-2.7]
+  \hpbrelease{1}{A.3}[-2.7]
+  \hpbmilestone{7}{end of sale}[-2.7]
+  % ---- branches of the firmware line
+  \hpbbranch[forkoff=0.5, label={X-140 Relay chatter (Rev A + v2.0)}]{iss}{3}{-1}{4}{10}{target}{14}
+  \hpbstep{iss}{8}{-1}{pass}
+  \hpbbranch[forkoff=0.6, label={I-77 Low-power mode}]{imp}{3}{1}{5}{10}{target}{14}
+  \hpbstep{imp}{6}{1}{done}
+  % ---- I-77 depends on the hardware baseline B.2; launch bundle
+  \hpbdepends{10,1}{13,2.7}{depends on}
+  \hpbbundle{12.1,-0.55}{17.4,3.85}{launch bundle K-1 (all or nothing)}
+  \hpbnow{10}{2.7}{-2.7}
+  % ---- ordinal time axis
+  \hpbaxis{0}{17.7}{-3.75}
+  \hpbtick{1}{Feb 2026}{-3.75}
+  \hpbtick{3}{May}{-3.75}
+  \hpbtick{7}{Sep}{-3.75}
+  \hpbtick{10}{Nov}{-3.75}
+  \hpbtick{13}{Apr 2027}{-3.75}
+\end{hpbgraph}}
+\caption{Situation~I: one firmware shared by two hardware references
+(illustrative). Each firmware version declares the hardware it applies to;
+X-140 is drawn on the firmware line, with its observed configuration in the
+label. I-77 depends on the hardware baseline B.2, so \texttt{v2.1} and B.2
+form the launch bundle K-1: published together or not at all
+(\cref{rule:gate}).}
+\label{fig:shared}
+\end{figure}

@@ -1,0 +1,49 @@
+% F11 -- Condition G: maintained release stream and back-port.
+% Illustrative data. Requires hpb.sty v1.1. Canvas: document defaults.
+\begin{figure}[t]
+\centering
+\hpbfit{%
+\begin{hpbgraph}
+  % ---- main stream of the line (y = 0) and its lanes
+  \hpblane{1}{imp}{Improvement (I)}{0}{16.7}
+  \hpblane{-1}{iss}{Issue (X)}{0}{16.7}
+  \hpbmainline{0}{13}
+  \hpbmainline*{13}{16.7}
+  \hpborigin{0}{Gateway GW-2}
+  \hpbrelease{1}{v1.4}
+  \hpbrelease{6}{v2.0}
+  \hpbrelease{12}{v2.0.1}
+  % ---- maintenance stream 1.x (y = -2.2), forked at v1.4, own band
+  \hpbseparator{-1.6}{-2.4}{16.7}
+  \hpblane{-2.2}{main}{1.x stream\\(maintenance)}{0}{1.8}
+  \hpblane{-3.2}{iss}{Issue (X)}{0}{16.7}
+  \hpbstream[0.8]{1}{-2.2}{13}
+  \hpbmainline*{13}{16.7}[-2.2]
+  \hpbrelease{7}{v1.4.1}[-2.2]
+  \hpbplanned{15}{v1.4.2}{Feb 2027}[-2.2]
+  % ---- branches
+  \hpbbranch[forkoff=0.6, label={I-70 Mesh networking}]{imp}{1}{1}{3}{5}{merge}{6}
+  \hpbbranch[forkoff=0.3, mergeline=-2.2, label={X-298 Log rotation}]{iss}{1}{-3.2}{2}{4}{merge}{7}
+  \hpbbranch[label={X-305 TLS parsing}]{iss}{6}{-1}{8}{11}{merge}{12}
+  \hpbstep{iss}{9}{-1}{pass}
+  \hpbbranch[line=-2.2, label={X-306 Port of X-305}]{iss}{7}{-3.2}{10}{13}{target}{15}
+  % ---- propagation: X-306 carries the fix of X-305 to the 1.x stream (the
+  %      connector reaches the start node from the upper left, clear of its label)
+  \hpbpropagates{8,-1}{10,-3.2}{back-port}
+  % ---- NOW and ordinal time axis
+  \hpbnow{13}{1}{-3.2}
+  \hpbaxis{0}{16.7}{-4.0}
+  \hpbtick{1}{Mar 2026}{-4.0}
+  \hpbtick{6}{Jul}{-4.0}
+  \hpbtick{7}{Aug}{-4.0}
+  \hpbtick{13}{Nov}{-4.0}
+  \hpbtick{15}{Feb 2027}{-4.0}
+\end{hpbgraph}}
+\caption{Situation~G: a maintained stream and a back-port
+(illustrative). The 1.x stream leaves \texttt{v1.4}; its patch
+\texttt{v1.4.1} ships after \texttt{v2.0} but is not part of
+\texttt{v2.0.1}. X-305 is fixed in \texttt{v2.0.1} and ported to 1.x as a
+separate branch, X-306, linked by a propagation connector and targeted at
+\texttt{v1.4.2}.}
+\label{fig:backport}
+\end{figure}

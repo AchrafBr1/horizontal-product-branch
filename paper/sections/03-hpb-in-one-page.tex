@@ -1,0 +1,107 @@
+% ---------------------------------------------------------------------
+%  03-hpb-in-one-page.tex -- the whole method on one page
+% ---------------------------------------------------------------------
+\section{HPB in One Page}
+\label{sec:onepage}
+
+\paragraph{The idea.}
+Draw the product, not the work. Each product reference is a thick
+horizontal line, the \emph{main line}, running left to right in time. Its
+versions sit on it as \emph{baselines}: released ones on the left of the
+NOW marker, planned ones on the right. Everything you do to the product is
+a \emph{branch}: it leaves the main line at the released baseline it
+started from and comes back to the version that closes it, or ends in a
+cross with a written reason. Improvements and lab work run above the line,
+defects and tasks below. When a hardware change creates a new reference,
+the line itself forks and the new reference starts its own main line,
+linked to its parent. A planned version is a \emph{gate}: it is released
+only when the work committed to it has passed verification.
+
+That is the whole method. \Cref{fig:anatomy} shows every element on a
+single product line, ``Product A''. Read it from left to right: v1.0 is
+released; defect X-31 forks from it and is fixed in v1.0.1; improvement
+I-12 forks from v1.0.1 and is merged into v1.1; task T-7 is discarded
+because it was superseded; lab evaluation L-3 is still open, with one test
+passed and one failed; and defect X-40 is committed to the planned v1.2,
+whose gate is still closed.
+
+\input{figures/anatomy}
+
+\paragraph{Four kinds of branch.}
+Every branch has exactly one type, shown by its lane, its color and the
+letter in its start node: \textbf{I}~improvement (a change that makes the
+product better for users), \textbf{L}~laboratory evolution (evaluation of
+a new component, design or technology), \textbf{X}~issue (a defect) and
+\textbf{T}~task (engineering or operational work that keeps the product
+correct and operable). The split is deliberate: I and L move the product
+forward and sit above the line; X and T keep it healthy and sit below.
+
+\paragraph{The seven rules.}
+HPB is defined by seven rules. They are short because each one closes a
+specific hole I kept falling into. Their formal statements are in
+\cref{app:formal}; here is what they say and why they exist.
+\begin{description}[leftmargin=1.2em,style=nextline,itemsep=3pt,topsep=4pt]
+  \item[\Cref{rule:origin}: single origin.]
+    Every branch forks from exactly one released baseline, fixed when the
+    work is accepted. For a defect, that is the version where it was seen.
+    \emph{Why:} without it, ``relative to which version?'' has no answer
+    and you cannot tell in which version a defect escaped.
+  \item[\Cref{rule:closure}: explicit closure.]
+    Every closed branch ends in exactly one way: merged into one baseline,
+    or discarded with a written reason. Nothing is closed silently.
+    \emph{Why:} ``closed'' with no version and no reason is the most common
+    way traceability is lost. Six months later nobody can tell whether it
+    was fixed, dropped or forgotten.
+  \item[\Cref{rule:time}: time moves forward.]
+    A branch merges only into a baseline that comes after its origin, on
+    the same line or a descendant of it. \emph{Why:} a version cannot
+    contain work that was requested after it was frozen, so change logs
+    contain only what really went in.
+  \item[\Cref{rule:gate}: gate integrity.]
+    A planned version is released only when every branch committed to it
+    has passed verification against a candidate of that version, and
+    everything it depends on is released too. Work that is not ready is
+    re-targeted or discarded, explicitly. \emph{Why:} it stops the most
+    expensive habit in product work, shipping a version while committed
+    work is quietly still pending.
+  \item[\Cref{rule:lineage}: lineage and life cycle.]
+    A hardware change that is not interchangeable in form, fit or function
+    creates a new line with a permanent link to its parent; references are
+    never edited in place, and a retired reference does not accumulate new
+    work. \emph{Why:} units already in the field keep their history, and
+    you always know what to maintain and for how long.
+  \item[\Cref{rule:typed}: typed work.]
+    Every branch has one type; sub-tasks and test runs are steps of a
+    branch, not branches of their own. \emph{Why:} otherwise the same piece
+    of work is counted twice, and the metrics lie.
+  \item[\Cref{rule:discussion}: traceable discussion.]
+    Every comment, decision or piece of evidence is attached to one
+    element of the graph (a line, a baseline or a branch), and the record
+    is append-only. \emph{Why:} decisions made in chat threads and meetings
+    cannot be audited; attached to the branch they concern, they are found
+    exactly where the diagram is read.
+\end{description}
+
+\paragraph{HPB 1.0: what is normative.}
+This section, together with the quick-reference card in \cref{app:card},
+is the normative definition of HPB~1.0: the idea, the four branch types,
+the seven rules and the notation. Everything else in this paper explains,
+illustrates or supports it, and the formal model of \cref{app:formal}
+states the same rules precisely. The method will change only through
+versioned releases: HPB~1.x for additions that keep every existing diagram
+valid, a new major version for anything that would not. The text of the
+method and its notation are offered under the Creative Commons Attribution
+4.0 license (CC~BY~4.0): copy, translate and adapt them, with credit. The
+\LaTeX{} package \texttt{hpb.sty} and the HPB Markup toolkit are released
+under the MIT license.
+
+\paragraph{What you get.}
+With these rules in place, the questions from \cref{sec:introduction} are
+answered by looking at the picture: where a defect was seen (its fork),
+whether it is fixed and in which version (its terminal), what else is open
+on the product (the branches crossing NOW), what a planned version is
+waiting for (the branches entering its gate), and what moved to a new
+hardware reference (the line fork). The rest of the paper makes each of
+these elements precise (\cref{sec:model}), fixes how they are drawn
+(\cref{sec:notation}), and shows them in the situations a product manager
+meets every week (\cref{sec:practice}).

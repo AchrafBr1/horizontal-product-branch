@@ -1,0 +1,55 @@
+% F5 -- Condition D: discarded and not-viable work, re-targeting.
+% Illustrative data. Requires hpb.sty v1.1. Canvas: document defaults.
+% Lanes follow Algorithm 1 (closed: innermost free lane; open at NOW:
+% outermost free lane).
+\begin{figure}[t]
+\centering
+\hpbfit{%
+\begin{hpbgraph}
+  % lanes: improvements above; two issue lanes below (parallel defects)
+  \hpblane{1}{imp}{Improvement (I)}{0}{18.7}
+  \hpblane{-1}{iss}{Issue (X)}{0}{18.7}
+  \hpblane{-2}{iss}{Issue (X)}{0}{18.7}
+  % main line: history up to NOW (col 13), plan afterwards
+  \hpbmainline{0}{13}
+  \hpbmainline*{13}{18.7}
+  \hpborigin{0}{Product A}
+  \hpbrelease{1}{v3.0}
+  \hpbrelease{8}{v3.0.1}
+  \hpbplanned{15}{v3.1}{Mar 2027}
+  \hpbplanned{18}{v3.2}{Jun 2027}
+  % improvement judged not viable: discarded, never rejoins the line
+  \hpbbranch[label={I-60 Solar panel}]{imp}{1}{1}{2}{5}{discard}{}
+  \hpblabel[right]{5}{1}{\itshape not viable\\\itshape (unit cost)}
+  % defect fixed by the patch baseline v3.0.1
+  \hpbbranch[forkoff=0.3, label={X-52 Display flicker}]{iss}{1}{-2}{3}{7}{merge}{8}
+  % same defect reported again: closed as duplicate
+  \hpbbranch[forkoff=0.6, label={X-57 Screen flickers}]{iss}{1}{-1}{4}{5}{discard}{}
+  \hpblabel[right]{5}{-1}{\itshape duplicate\\\itshape of X-52}
+  % improvement targeted at v3.1
+  \hpbbranch[label={I-61 Offline mode}]{imp}{8}{1}{9}{13}{target}{15}
+  % defect re-targeted from v3.1 to v3.2: the decision is a recorded (done)
+  % step on the branch with a label; former target faded, current target at
+  % full strength
+  \hpbbranch[label={X-63 OTA timeout}]{iss}{8}{-2}{10}{13}{target}{18}
+  \hpbtarget[faded]{13}{-2}{15}
+  \hpbstep{iss}{11}{-2}{done}
+  \hpblabel[below center]{11}{-2}{re-targeted\\[-1pt]v3.1\,$\rightarrow$\,v3.2}
+  % NOW marker
+  \hpbnow{13}{1}{-2}
+  % annotation of the former target
+  \hpbcallout{16.0,-1.0}{former target\\(faded)}{14.5,-1.0}
+  % ordinal time axis with calendar ticks
+  \hpbaxis{0}{18.7}{-3.1}
+  \hpbtick{1}{Jul 2026}{-3.1}
+  \hpbtick{8}{Sep}{-3.1}
+  \hpbtick{13}{Nov}{-3.1}
+  \hpbtick{15}{Mar 2027}{-3.1}
+  \hpbtick{18}{Jun}{-3.1}
+\end{hpbgraph}}
+\caption{Situation~D: discards and re-targeting (illustrative). I-60
+and the duplicate X-57 end in gray crosses with their reasons and never
+rejoin the line. X-63 was moved from \texttt{v3.1} to \texttt{v3.2}; the old
+commitment stays visible as a faded dashed line.}
+\label{fig:discard}
+\end{figure}

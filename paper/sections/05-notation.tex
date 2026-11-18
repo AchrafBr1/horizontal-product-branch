@@ -1,0 +1,357 @@
+% ---------------------------------------------------------------------
+%  05-notation.tex -- the HPB notation standard (condensed)
+%  Glyphs in tab:notation are drawn with hpb.sty v1.0 (same code as the
+%  figures). The anatomy figure (fig:anatomy) is input in section 03.
+% ---------------------------------------------------------------------
+\section{The HPB Notation}
+\label{sec:notation}
+
+A methodology spreads when people can draw it on a whiteboard and others
+read the drawing the same way. Git-flow~\citep{driessen2010gitflow} is a
+good example: one diagram, copied everywhere, and every engineer knows how
+to read it. HPB needs the same thing, so the notation is fixed: the canvas,
+where each element goes, the glyphs and a short list of layout rules. All
+diagrams in this paper are drawn with the \LaTeX{} package
+\texttt{hpb.sty} (\cref{app:package}), and the open-source renderer of
+\cref{sec:tooling} copies the same glyphs, so a diagram looks the same in
+a paper, a wiki or a product portal. A quick-reference card is in
+\cref{app:card}.
+
+Four goals shaped the notation:
+\begin{enumerate}[label=\textbf{G\arabic*},leftmargin=*,itemsep=1pt,topsep=3pt]
+  \item \textbf{One concept, one glyph.} Every element a reader must
+        recognize has exactly one glyph, and no glyph is decorative.
+  \item \textbf{Position carries meaning.} \emph{When} and \emph{what kind
+        of work} are read from horizontal and vertical position, before
+        color or shape.
+  \item \textbf{Never color alone.} Every category is encoded at least
+        twice, so diagrams survive grayscale printing and color-vision
+        deficiency.
+  \item \textbf{Familiar to engineers.} A horizontal main line, version tags
+        above the nodes, branches that leave and rejoin it: the vocabulary
+        of the branch diagrams R\&D teams already read.
+\end{enumerate}
+
+\subsection{Canvas, lanes and reading order}
+\label{sec:notation-canvas}
+
+Time runs left to right. The vertical axis carries no quantity; it is
+divided into horizontal \emph{lanes} of equal height. Lane~$0$ is the
+\emph{main line}: a thick (3\,pt) dark stroke that \emph{is} the product.
+Released baselines sit on it as nodes, in order; planned baselines sit to
+the right of the present moment on a dashed continuation of the same
+stroke. Each lane has a faint dotted guide across the canvas and a legend
+box at its left end that names the type in words; the legend boxes and the
+product box of the line align in one column, so the left margin reads as
+the key.
+
+\paragraph{Lane placement.}
+Branches run on the lane of their type, by a fixed \emph{lane map}:
+\begin{equation}
+  \lambda(\mathsf{I}) = +1,\qquad
+  \lambda(\mathsf{L}) = +2,\qquad
+  \lambda(\mathsf{X}) = -1,\qquad
+  \lambda(\mathsf{T}) = -2 .
+  \label{eq:lanemap}
+\end{equation}
+Work that makes the product better (improvements, lab evolutions) goes
+\emph{above} the main line; work that keeps it correct (issues, tasks)
+goes \emph{below}. On each side, the type that most directly changes what
+customers receive sits nearest the line. When several branches of a type
+are open at the same time, extra lanes of that type are stacked outward
+next to the existing ones, and the order $\mathsf{I}$ before $\mathsf{L}$
+above and $\mathsf{X}$ before $\mathsf{T}$ below is kept
+(\cref{fig:scale}). When a diagram shows several lines or streams, each
+gets its own \emph{lane band}, separated by a thin rule, and above or below
+is read relative to that band's main line
+(\cref{fig:hardware-fork,fig:backport,fig:shared}).
+
+\paragraph{Reading order.}
+Every HPB diagram reads the same way: \emph{above the line, how the product
+gets better; below it, what is wrong and how it is fixed; left of NOW,
+history, which does not change; right of NOW, the plan, which is expected
+to change.} The NOW marker is a dashed vertical line in its own color,
+labeled \textsf{NOW}, across all lanes. Left of it all strokes are solid,
+right of it all strokes are dashed: the drawing shows directly that
+released versions are immutable. \Cref{fig:anatomy} annotates every glyph
+of a single-line diagram.
+
+\subsection{Ordinal time}
+\label{sec:notation-time}
+
+By default HPB uses an \emph{ordinal} time axis: every event (a release, a
+branch start, a step, a terminal) gets its own column of equal width, in
+time order, followed by the NOW column and then the planned baselines in
+order of target date (\cref{def:ordinal}). Calendar months appear only as
+tick labels on an axis below the diagram.
+
+I chose ordinal time because real product histories are lumpy. A single
+week can bring a hotfix, a release and three new issues, and then nothing
+happens for a month. On a calendar scale the busy week becomes an
+unreadable knot and the quiet month wastes half the page. With one column
+per event, dense periods stay readable, glyphs never collide, and labels
+can be placed by a fixed rule. The \emph{linear} alternative, where
+horizontal position is proportional to calendar time as in a Gantt chart,
+is still allowed when the distance to a date is itself the message, as in
+a roadmap; it must then be stated in the caption.
+
+\begin{remark}
+  \label{rem:ordinal}
+  In an ordinal diagram, horizontal length is \emph{not} duration. A long
+  branch is one that was open while many other things happened, not
+  necessarily one that was open for long. Durations such as lead time are
+  computed from the model (\cref{sec:metrics}) and, when needed, printed
+  as labels; they are never read off the drawing.
+\end{remark}
+
+\subsection{Glyphs}
+\label{sec:notation-glyphs}
+
+\Cref{tab:notation} lists the core glyphs and the model element each one
+stands for; they are drawn with the same macros as the figures, so the
+table is an exact sample of the notation. A few rules complete it.
+
+\emph{Baselines.} When the target date of a planned baseline has passed, an
+exclamation badge appears and its tag and date turn red. A hardware
+baseline is a diamond with an indigo tag; with the caption \emph{new ref.}\
+it is the first node of a new line, reached from the parent line by a
+vertical lineage connector. A process baseline is a square. A maintenance
+stream leaves its baseline with a rounded corner and continues in its own
+band. Life-cycle milestones are thin labeled ticks, and a bar labeled
+\textsf{EoS} ends a retired line. The dot at the left end of a main line
+marks the creation of the reference; it is not a baseline.
+
+\emph{Branches and terminals.} A branch is an orthogonal path with rounded
+corners: a short run from the fork baseline, a drop (or rise) to the lane
+of its type, and a run along the lane. Its label, above the start node,
+gives the tracker reference and a short title. A discarded branch turns
+gray, never rejoins the line and carries its rationale. A re-targeted
+branch keeps its old target as a faded dashed continuation, so the change
+of plan stays visible (\cref{fig:discard}).
+
+\emph{Markers.} A step after closure, such as an effectiveness check on a
+corrective action, sits on a dotted continuation (\cref{fig:rma}). A dark
+badge under a baseline counts merged branches whose drawing was collapsed.
+A dash-dotted frame around planned baselines of several lines is a launch
+bundle. Thin straight connectors are the only lines that may cross lanes
+diagonally: dotted with an open arrowhead for a dependency, dashed with a
+filled arrowhead for a propagation.
+
+% ---------------------------------------------------------------------
+% Glyph table.  Glyph column: small hpbgraph pictures (hpb.sty v1.0).
+% ---------------------------------------------------------------------
+% \HPBglyph[<hpbgraph keys>]{<hpb macros>}: one glyph sample with 3pt of
+% vertical padding (glyph sizes are normative; only spacing is reduced).
+\providecommand{\HPBglyph}[2][]{%
+  \begin{hpbgraph}[col=0.55cm,lane=0.9cm,legend=1.3cm,#1]#2%
+    \path ([yshift=3pt]current bounding box.north)
+          ([yshift=-3pt]current bounding box.south);%
+  \end{hpbgraph}}
+
+\begin{table}[p]
+  \centering
+  \small
+  \caption{The HPB notation: glyph, element and meaning, drawn with
+    \texttt{hpb.sty} at normative size. Color is never the only carrier of
+    meaning (\cref{sec:notation-a11y}). The full card, with the macro that
+    draws each glyph, is in \cref{app:card}.}
+  \label{tab:notation}
+  \renewcommand{\arraystretch}{1.12}
+  \renewcommand{\tabularxcolumn}[1]{m{#1}}
+  \begin{tabularx}{\linewidth}{@{}>{\centering\arraybackslash}m{3.55cm}
+      >{\raggedright\arraybackslash}m{2.75cm}
+      >{\raggedright\arraybackslash}X@{}}
+    \toprule
+    Glyph & Element & Meaning \\
+    \midrule
+    % main line
+    \HPBglyph{\hpbmainline{0}{2.2}\hpbmainline*{2.2}{4.2}
+      \draw[hpb/now] (2.2,0.35) -- (2.2,-0.35);}
+    & Main line
+    & The product line and its versions. Solid left of NOW (history),
+      dashed right of NOW (plan). \\
+    % origin
+    \HPBglyph{\hpbmainline{0}{2}\hpborigin{0}{Product A}}
+    & Line origin
+    & Creation of the reference (not a version), with the product
+      reference in a box aligned with the lane legends. \\
+    % released baseline
+    \HPBglyph{\hpbmainline{-1.2}{1.2}\hpbrelease{0}{v1.1}}
+    & Released baseline
+    & A released version; the tag holds its name. Immutable. \\
+    % planned baseline
+    \HPBglyph{\hpbmainline*{-1.8}{1.2}\hpbplanned{-0.7}{v1.2}{Mar 2027}}
+    & Planned baseline
+    & A planned version with its target date, and a gate. Badge ``!'',
+      red tag and date: target date passed. \\
+    % hardware baseline
+    \HPBglyph{\hpbmainline{-1.8}{1.2}\hpbhardware{-0.7}{Rev B}}
+    & Hardware baseline
+    & A hardware revision; with the caption \emph{new ref.}, the first
+      version of a new line (line fork). \\
+    % gate band
+    \HPBglyph[lane=0.75cm]{\hpbmainline*{1.3}{4.6}
+      \node[hpb/planned] at (4,0) {};
+      \hpbgate[0.8]{4}{0}{-1}{}
+      \hpbterminal{target}{iss}{1.5}{-1}
+      \hpbtarget{1.5}{-1}{4}}
+    & Gate band
+    & The targeted set $\mathcal{B}(g)$: every dashed continuation entering
+      the band must be verified before the version ships
+      (\cref{rule:gate}). \\
+    % start nodes
+    \HPBglyph[col=0.75cm]{\hpbstart{imp}{0}{0}{I}\hpbstart{lab}{1}{0}{L}
+      \hpbstart{iss}{2}{0}{X}\hpbstart{task}{3}{0}{T}}
+    & Start node
+    & Opening of a branch; fill color and letter give its type. \\
+    % branch path from a baseline
+    \HPBglyph[lane=0.75cm]{\hpbmainline{-0.6}{3.8}
+      \node[hpb/baseline] at (0,0) {};
+      \hpbbranch{iss}{0}{-1}{1.3}{3.8}{none}{}}
+    & Branch (fork)
+    & The path leaves its fork baseline $f(b)$ and runs on the lane of its
+      type. \\
+    % merge
+    \HPBglyph[lane=0.75cm]{\hpbmainline{-0.6}{4.6}
+      \node[hpb/baseline] at (0,0) {};
+      \node[hpb/baseline] at (4,0) {};
+      \hpbbranch{imp}{0}{1}{1.2}{2.7}{merge}{4}}
+    & Merge terminal
+    & Merged: the path rejoins the version $m(b)$ that closed it. \\
+    % discard
+    \HPBglyph[lane=0.75cm]{\hpbmainline{-0.6}{3.8}
+      \node[hpb/baseline] at (0,0) {};
+      \hpbbranch{task}{0}{-1}{1.3}{3.3}{discard}{}}
+    & Discard terminal
+    & Discarded: closed without a version, with a mandatory rationale;
+      gray path, never rejoins. \\
+    % open head
+    \HPBglyph[lane=0.75cm]{\hpbmainline{-0.6}{3.8}
+      \node[hpb/baseline] at (0,0) {};
+      \hpbbranch{lab}{0}{1}{1.3}{3.3}{open}{}
+      \draw[hpb/now] (3.3,1.6) -- (3.3,0.4);}
+    & Open branch
+    & Open: the head lies on the NOW marker. \\
+    % targeted
+    \HPBglyph[lane=0.75cm]{\hpbmainline{-0.6}{2.7}\hpbmainline*{2.7}{5}
+      \node[hpb/baseline] at (0,0) {};
+      \node[hpb/planned] at (4.4,0) {};
+      \hpbbranch{iss}{0}{-1}{1}{2.7}{target}{4.4}}
+    & Targeted branch
+    & Committed: dashed continuation from the head to the planned target
+      $g(b)$. \\
+    % steps
+    \HPBglyph[col=0.6cm,lane=0.7cm]{\draw[hpb/path] (-0.4,0) -- (4.4,0);
+      \hpbstep{imp}{0}{0}{done}\hpbstep{imp}{1.33}{0}{todo}
+      \hpbstep{lab}{2.67}{0}{pass}\hpbstep{lab}{4}{0}{fail}}
+    & Steps
+    & Done, pending, test or verification passed, test failed. \\
+    % NOW
+    \HPBglyph[lane=0.7cm]{\hpbmainline{-1.6}{0}\hpbmainline*{0}{1.6}\hpbnow{0}{0}{0.2}}
+    & NOW marker
+    & The present moment: history to its left, plan to its right. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Never color alone}
+\label{sec:notation-a11y}
+
+Color is lost in grayscale prints and photocopies, and many readers have
+a color-vision deficiency. Color universal design therefore recommends
+never using color as the only carrier of
+information~\citep{okabe2008cud}. HPB encodes every category at least
+twice:
+\begin{itemize}[leftmargin=1.5em,itemsep=1pt,topsep=3pt]
+  \item \emph{branch type}: lane position, letter in the start node, legend
+        box in words, and fill color;
+  \item \emph{branch state}: terminal shape (check, cross, hollow head),
+        line style (solid, dashed, gray) and position relative to NOW;
+  \item \emph{baseline status}: filled or white node, solid or dashed
+        outline, presence of a target date, position relative to NOW;
+  \item \emph{baseline kind}: shape (circle, diamond, square), tag color,
+        and the caption \emph{new ref.}\ for a line fork;
+  \item \emph{overdue}: the ``!'' badge in addition to the red tag;
+  \item \emph{test outcome}: check or cross in addition to green or red.
+\end{itemize}
+The palette uses light fills with one dark ink color for every outline,
+path and text. All fills keep a contrast ratio of at least $4.4{:}1$
+against the ink, so letters, checks and crosses stay readable in
+grayscale. Not every pair of fills is distinguishable without color
+vision: task green and lab teal are close. That is acceptable only because
+the two types are never adjacent (one is below the main line, the other
+above it) and their letters and legend boxes differ. In the spirit of
+Tufte~\citep{tufte2001}, there are no gridlines other than the faint lane
+guides, no separate legend panel, and the thickest stroke is reserved for
+the product itself.
+
+\subsection{Layout rules}
+\label{sec:notation-layout}
+
+Glyphs alone do not make diagrams comparable; their arrangement must be
+fixed too. A diagram \emph{conforms} to the HPB notation when it uses the
+glyphs of \cref{tab:notation} and follows these rules. Every figure in
+this paper conforms, \texttt{hpb.sty} implements the rules by construction
+or by documented convention, and the renderer of \cref{sec:tooling}
+applies them automatically, with the one gap noted there (the lane
+preference of \ref{lay:onelane}).
+
+\begin{enumerate}[label=\textbf{L\arabic*},ref=L\arabic*,leftmargin=*,
+    itemsep=2pt,topsep=3pt]
+  \item \label{lay:ordinal}\textbf{Ordinal columns.} Unless the caption
+        says linear time: one event per column, equal column width, and one
+        canvas (column width, lane height, key width) for all diagrams of a
+        document. One exception is allowed: the merge terminals of the
+        branches that a single release closes may share one column, just
+        before that release, as long as they sit on different lanes. Calendar periods appear only as ticks below the diagram,
+        and the axis may be left out when dates are not the message.
+  \item \label{lay:lanes}\textbf{Fixed lanes.} Branches run on the lanes
+        of \cref{eq:lanemap}; extra lanes of a type stack outward next to
+        that type. Every lane has a guide and a legend box, aligned in the
+        key column with the origin boxes of all lines.
+  \item \label{lay:onelane}\textbf{One branch per lane at a time.} A lane
+        is reused only after the previous branch on it has ended. Branches
+        are placed in order of their fork. A branch already closed by NOW
+        takes the innermost free lane of its type; a branch still open or
+        targeted at NOW takes the outermost one.
+  \item \label{lay:fork}\textbf{Clean verticals.} A branch leaves its fork
+        baseline half a column to the right of the node and enters its
+        merge baseline half a column to the left, so verticals never cross
+        a tag. When several branches share a baseline and a side, the
+        farther lane uses the smaller offset, so corners nest and paths
+        never cross.
+  \item \label{lay:tags}\textbf{One tag per baseline.} Directly above the
+        node, with an arrow to it. Tags never overlap each other, a path or
+        a label: make the column at least as wide as the widest tag, or
+        insert a spacer column between consecutive baselines. In linear
+        time, a colliding tag is raised one tag height.
+  \item \label{lay:labels}\textbf{Labels.} A branch label (reference and
+        short title) is left-aligned at the start node, above the lane, on
+        a white halo, and ends before the next vertical and before NOW. The
+        only text beside a terminal is the discard rationale. Nothing is
+        written on a main line, and callouts never cover a path or a label
+        other than the one they point to.
+  \item \label{lay:terminal}\textbf{Exactly one terminal.} Every branch
+        ends in exactly one merge, discard or open head, mirroring
+        \cref{rule:closure}.
+  \item \label{lay:now}\textbf{History is not redrawn.} Left of NOW,
+        strokes are solid and drawn as recorded; right of NOW, only planned
+        versions, targeted continuations and pending steps appear, all
+        dashed or hollow. An audited reopen is a new event in its own
+        column, never an edit of the past.
+  \item \label{lay:linefork}\textbf{Several lines and streams.} Each child
+        line, maintenance stream or line of a configuration gets its own
+        lane band, separated by a thin rule, with its legend boxes in the
+        key column. A child line starts at its hardware diamond, reached by
+        the lineage connector; a stream leaves its fork baseline. A retired
+        parent line ends with an \textsf{EoS} bar.
+  \item \label{lay:fonts}\textbf{Legibility.} Scale diagrams uniformly,
+        never in one direction only. After scaling, no text is smaller than
+        6\,pt and glyphs keep their relative sizes.
+\end{enumerate}
+
+Rules \ref{lay:ordinal}--\ref{lay:onelane} also make the layout
+\emph{computable}: columns come from sorting the events, lanes from
+packing the branch intervals of each type. That is the basis of the
+layout algorithm in \cref{app:layout}, and the reason a text description
+of a product history is enough to produce a conforming diagram.

@@ -1,0 +1,83 @@
+% F8 -- The same portfolio seen in a Kanban board and in HPB.
+% Illustrative data. Requires hpb.sty v1.1. The board (a) is drawn with plain
+% TikZ in explicit cm; the HPB view (b) uses the hpb macros and the document
+% canvas. The panels are stacked so that both keep their natural size.
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+    kb/col/.style   = {draw=hpbDiscInk, line width=0.6pt, rounded corners=3pt,
+                       fill=hpbGuide!30},
+    kb/head/.style  = {font=\sffamily\bfseries\fontsize{7}{8.4}\selectfont,
+                       text=hpbInk, anchor=north},
+    kb/card/.style  = {draw=hpbInk, line width=0.8pt, rounded corners=2pt,
+                       fill=white},
+    kb/ref/.style   = {font=\sffamily\bfseries\fontsize{7}{8.4}\selectfont,
+                       text=hpbInk, anchor=west, inner sep=0pt},
+    kb/title/.style = {font=\sffamily\fontsize{6.5}{7.8}\selectfont,
+                       text=hpbInk, anchor=west, inner sep=0pt},
+    kb/panel/.style = {font=\sffamily\bfseries\fontsize{7.5}{9}\selectfont,
+                       text=hpbInk, anchor=south west, inner sep=0pt},
+  ]
+  \node[kb/panel] at (0,1.95) {(a) Kanban board, Product A};
+  % columns: x of left edge (cm), title
+  \foreach \x/\t in {0/To do, 3.6/In progress, 7.2/Done}{
+    \draw[kb/col] (\x,1.75) rectangle (\x+3.4,-1.0);
+    \node[kb/head] at (\x+1.7,1.68) {\t};
+    \draw[draw=hpbDiscInk, line width=0.6pt] (\x,1.3) -- (\x+3.4,1.3);
+  }
+  % cards: column left edge, top y (cm), type color, letter, ref, title
+  \foreach \x/\y/\c/\l/\r/\t in {
+      0/1.15/hpbIss/X/X-35/Drift,
+      3.6/1.15/hpbLab/L/L-3/New sensor,
+      3.6/0.35/hpbImp/I/I-14/Eco mode,
+      7.2/1.15/hpbIss/X/X-31/Crash,
+      7.2/0.35/hpbImp/I/I-12/Faster pairing,
+      7.2/-0.45/hpbTask/T/T-7/Migrate logs}{
+    \draw[kb/card] (\x+0.1,\y) rectangle (\x+3.3,\y-0.62);
+    \node[hpb/event, fill=\c, minimum size=10pt, line width=1.1pt,
+          font=\sffamily\bfseries\fontsize{6}{7}\selectfont]
+      at (\x+0.38,\y-0.31) {\l};
+    \node[kb/ref]   at (\x+0.65,\y-0.31) {\r};
+    \node[kb/title] at (\x+1.35,\y-0.31) {\t};
+  }
+\end{tikzpicture}
+
+\medskip
+\hpbfit{%
+\begin{hpbgraph}
+  \node[font=\sffamily\bfseries\fontsize{7.5}{9}\selectfont, text=hpbInk,
+        anchor=south west, inner sep=0pt] at (-2.75,3.0)
+    {(b) HPB view of the same items};
+  \hpblane{2}{lab}{Lab (L)}{0}{17.7}
+  \hpblane{1}{imp}{Improvement (I)}{0}{17.7}
+  \hpblane{-1}{iss}{Issue (X)}{0}{17.7}
+  \hpblane{-2}{task}{Task (T)}{0}{17.7}
+  \hpbmainline{0}{14}
+  \hpbmainline*{14}{17.7}
+  \hpborigin{0}{Product A}
+  \hpbrelease{1}{v1.0}
+  \hpbrelease{10}{v1.1}
+  \hpbplanned{16}{v1.2}{Jun 2027}
+  % history: two merges into v1.1, one discard
+  \hpbbranch[forkoff=0.6, label={X-31 Crash}]{iss}{1}{-1}{2}{7}{merge}{10}
+  \hpbbranch[forkoff=0.8, mergeoff=0.6, label={I-12 Faster pairing}]{imp}{1}{1}{3}{9}{merge}{10}
+  \hpbbranch[forkoff=0.3, label={T-7 Migrate logs}]{task}{1}{-2}{4}{6}{discard}{}
+  % open work at NOW
+  \hpbbranch[forkoff=0.5, label={L-3 New sensor}]{lab}{1}{2}{5}{14}{open}{}
+  \hpbstep{lab}{8}{2}{pass}
+  \hpbbranch[forkoff=0.6, label={I-14 Eco mode}]{imp}{10}{1}{11}{14}{target}{16}
+  \hpbbranch[label={X-35 Drift}]{iss}{10}{-1}{12}{14}{target}{16}
+  \hpbnow{14}{2}{-2}
+  % ordinal time axis with calendar ticks
+  \hpbaxis{0}{17.7}{-2.75}
+  \hpbtick{1}{Jan 2026}{-2.75}
+  \hpbtick{10}{Jun}{-2.75}
+  \hpbtick{14}{Nov}{-2.75}
+\end{hpbgraph}}
+\caption{Situation~F: the same six items on a Kanban board (a) and in
+HPB (b) (illustrative). The board shows the workflow state of each item. HPB
+adds what the board cannot show: the version each item started from, the
+version that closed it, that T-7 was discarded rather than delivered, and
+which items are committed to \texttt{v1.2} rather than merely open.}
+\label{fig:same-data}
+\end{figure}

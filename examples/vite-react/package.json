@@ -1,0 +1,28 @@
+{
+  "name": "@hpb/example-vite-react",
+  "private": true,
+  "version": "1.0.0",
+  "description": "HPB Markup example: Vite + React + TypeScript with an editable source and examples A-E.",
+  "license": "MIT",
+  "author": "Achraf Bouchtarouif El Khiat <achrafbouchtarouif@gmail.com>",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hpb/core": "workspace:*",
+    "@hpb/react": "workspace:*",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.18",
+    "@types/react-dom": "18.3.5",
+    "@vitejs/plugin-react": "4.3.4",
+    "typescript": "5.6.3",
+    "vite": "5.4.11"
+  }
+}

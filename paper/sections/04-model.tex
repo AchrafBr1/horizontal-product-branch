@@ -1,0 +1,290 @@
+% ---------------------------------------------------------------------
+%  04-model.tex -- the HPB model in plain language
+%  The precise definitions, rules R1--R7 and properties live in
+%  appendix-a-formal.tex (labels def:*, rule:*, prop:*).
+% ---------------------------------------------------------------------
+\section{The HPB Model}
+\label{sec:model}
+
+HPB has very few concepts, on purpose. Every concept had to earn its place
+by answering a question that I was asked in real product reviews and could
+not answer from the tools I had: \emph{what did this version contain,
+where was this defect seen, what is still open, and where did this
+reference come from?} This section explains the concepts in plain
+language, with the symbols introduced only where later sections use them.
+The precise definitions, the rules R1--R7 in their exact form and the
+properties that follow from them are collected in \cref{app:formal}; a
+tool builder should read that appendix, a product manager can stop here.
+
+\subsection{Product lines and baselines}
+\label{sec:model-lines}
+
+\paragraph{Product line.}
+A \emph{product line} $P$ is one product reference followed over time: a
+device model with its manufacturer reference, a firmware, an application
+or a service (\cref{def:line}). This is narrower than the ``product line''
+of software product line engineering, which means a family of variants; in
+HPB a line is \emph{one} reference and its history. The portfolio is the
+set of all lines, and lines are related by descent: when a hardware
+revision creates a new reference, the new line records the old one as its
+parent. The result is a family tree of references, the \emph{line
+forest}.
+
+\paragraph{Baseline.}
+A \emph{baseline} $v$ is a named, identifiable state of a line:
+\texttt{v2.3.1}, \texttt{Rev~B}, \texttt{PC-7} (\cref{def:baseline}). I
+use the word in its configuration-management sense, a reference
+configuration against which change is
+defined~\citep{ieee828,iso10007}. Every baseline has
+\begin{itemize}[leftmargin=1.5em,itemsep=1pt,topsep=2pt]
+  \item a \emph{kind}: firmware, software, hardware, or \emph{other}, the
+        last one used for \emph{process baselines}, i.e., a change to a
+        manufacturing process, test procedure or supplier that changes the
+        product as built without a new design revision;
+  \item a \emph{status}: \emph{planned} (a target with a date) or
+        \emph{released} (a fact with a date);
+  \item a name that is unique within its line. Any versioning convention
+        works, for example Semantic Versioning~\citep{semver}.
+\end{itemize}
+A status only moves from planned to released, and a released baseline is
+immutable. That one constraint is what makes everything else in HPB
+trustworthy: if a released version could still absorb work, no change log
+and no defect count would ever be final.
+
+\paragraph{What ``released'' means.}
+Every time-based metric depends on it, so HPB fixes a default per kind.
+Firmware and software are released when the build is published to
+customers; hardware when its engineering change order is approved
+\emph{and} its production effectivity is recorded, with the change-order
+identifier; a process change when it becomes effective in production. You
+may define it differently, but write your definition down.
+
+\paragraph{New revision or new reference?}
+This question comes back with every hardware revision, and HPB settles it
+with the test that engineering change management already
+uses~\citep{jarratt2011ec,stark2015plm}: \emph{form, fit and function}. A
+revised unit that is not interchangeable with the previous one in form,
+fit or function gets a new reference and starts a new line (a \emph{line
+fork}, below). An interchangeable change, such as a component substitution
+that keeps the reference, is simply a hardware baseline on the existing
+line.
+
+\paragraph{Release streams.}
+Products are rarely maintained on a single sequence of versions. Each line
+has a \emph{main stream} and, when needed, \emph{maintenance streams} that
+leave a released baseline of another stream, for example a long-term
+support branch of a firmware (\cref{def:mainline}). The ordered baselines
+of the main stream form the \emph{main line} $M(P)$, the thick horizontal
+stroke of every HPB diagram. Release dates order baselines only
+\emph{within} a stream: a patch \texttt{v1.4.1} on a stream forked at
+\texttt{v1.4} follows \texttt{v1.4}, even if it ships after \texttt{v2.0}
+on the main stream, and it does not contain anything that only went into
+\texttt{v2.0}. A stream never changes the product reference; that is what
+line forks are for (\cref{fig:backport}).
+
+\paragraph{Variants and configurations.}
+Regional or certification variants, OEM builds and members of a product
+family are \emph{sibling} lines: distinct references, each with its own
+history. Work that applies to all of them belongs on the line of the shared
+element, typically a firmware or software line, instead of being
+duplicated. Each firmware or software baseline records the hardware
+references it is released to run on (its \emph{applies-to} set), and a
+\emph{configuration} is a combination of baselines that is actually
+possible in the field, such as (\texttt{Rev~A}, firmware \texttt{v2.0},
+app \texttt{5.1}) (\cref{def:config}). The applies-to relation is the
+compatibility matrix of the portfolio.
+
+For a single device with its own firmware, a \emph{combined} line with
+both hardware revisions and firmware releases is simplest, and most
+examples here use it. Switch to separate lines as soon as one firmware
+build runs on several hardware references (\cref{fig:shared}).
+
+\subsection{Branches}
+\label{sec:model-branches}
+
+A \emph{branch} $b$ is one unit of change intent on a product: an
+improvement to make, a defect to fix, an engineering task to do, a lab
+evolution to qualify (\cref{def:branch}). It is \emph{not} a code branch.
+A single HPB branch may be implemented by many commits in several
+repositories, by a laboratory campaign or by a hardware redesign. HPB
+records where the intent started, where it ended, and what happened in
+between, and nothing more.
+
+\paragraph{Four types.}
+Every branch has exactly one type $\tau(b)$, as in \cref{sec:onepage}:
+$\mathsf{I}$ improvement (from customers, sales, competitor analysis or the
+roadmap), $\mathsf{L}$ laboratory evolution (evaluation, qualification or
+prototype work), $\mathsf{X}$ issue (a defect observed in a released
+baseline) and $\mathsf{T}$ task (work that keeps the product operable, such
+as a certification renewal or a last-time buy). In a portfolio with
+constant rotation, the balance between making the product better
+($\mathsf{I}$, $\mathsf{L}$) and keeping it correct ($\mathsf{X}$,
+$\mathsf{T}$) is one of the first things management asks about, so the
+notation puts the two groups on opposite sides of the main line.
+Sub-tasks are not branches: they are \emph{steps} of the branch they
+belong to, so that each piece of intent is counted once (\cref{rule:typed}).
+
+\paragraph{The fork baseline.}
+Every branch starts from exactly one released baseline, its \emph{fork
+baseline} $f(b)$, fixed when the request is accepted at triage
+(\cref{rule:origin}). For an issue, it is the version in which the defect
+was \emph{observed}, as reported. For the other types, it is the version
+the change is specified against, by default the latest release of the main
+stream. When a defect was reported against a combination of baselines,
+the full observed configuration is kept and one of its baselines is the
+primary one, on whose line the branch is drawn.
+
+The fork baseline records what was known at intake and is never
+rewritten by what is learned later: other affected versions go to an
+\emph{also affects} list, and the version that \emph{introduced} the
+defect is recorded separately. I insist on this because the first thing
+lost when tickets are edited over months is the one fact quality
+reporting needs: where the problem was actually seen. An inferred fork
+baseline, for example from old tickets loaded into HPB, is flagged as
+such.
+
+\paragraph{Steps.}
+What happens inside a branch is a short, time-ordered list of
+\emph{steps}: done, to do, test passed, test failed, each optionally with
+evidence such as a report, a measurement or a build identifier. Steps are
+where laboratory results and verifications live, and they are what the
+release gate checks.
+
+\subsection{How a branch lives and ends}
+\label{sec:model-closing}
+
+A branch is in one of four states (\cref{def:state},
+\cref{fig:lifecycle}):
+\begin{itemize}[leftmargin=1.5em,itemsep=1pt,topsep=2pt]
+  \item \textsf{open}: accepted, not yet committed to a version;
+  \item \textsf{targeted}: committed to a planned baseline, its
+        \emph{target} $g(b)$. The target can be changed (re-target) or
+        withdrawn (un-target), and the change remains visible;
+  \item \textsf{merged}: its result is part of a released baseline,
+        $m(b)$;
+  \item \textsf{discarded}: closed without a baseline, with a written
+        rationale.
+\end{itemize}
+Merged and discarded are final. Reopening a closed branch exists, but only
+as an exceptional, audited operation.
+
+\input{figures/lifecycle}
+
+\paragraph{Merge.}
+A branch is merged only from \textsf{targeted}, and only when its target
+baseline is published (\cref{def:merge}). The relation ``branch $b$ is
+closed by baseline $v$'' is what produces the change log of $v$. This
+looks strict, and it is meant to be: every merge fulfills a commitment that
+was written down beforehand, and released versions are never altered by
+ordinary work. For an urgent fix, targeting, verification and publication
+can follow each other within hours.
+
+A targeted branch is \emph{verified} when it has a passed test step whose
+evidence identifies a candidate of its target: a release-candidate build,
+a prototype or a pilot lot. Verification is checked at the gate.
+
+\paragraph{Discard.}
+A discard closes a branch without a baseline and always carries a
+rationale from one of two classes. \emph{Abandoned}: not viable,
+duplicate, cannot reproduce, superseded, out of scope, will not fix.
+\emph{Resolved without a product baseline}: already resolved in an
+existing version, contained without design change (for example by
+reworking stock), resolved by the supplier. Keeping the two classes apart
+matters for quality reporting: a problem solved outside the product is not
+the same as a problem nobody solved. A defect whose solution changes
+\emph{how} the product is built rather than its design is not discarded;
+it is merged into a process baseline.
+
+\subsection{Line forks, gates and the life of a reference}
+\label{sec:model-forks}
+
+\paragraph{Line fork.}
+A \emph{line fork} is a hardware baseline that creates a new reference
+$P'$ (\cref{def:linefork}). The hardware baseline is the first baseline of
+the new line, and the new line remembers its parent and the parent
+baseline it was derived from. The branches that produce the new reference,
+typically lab evolutions and improvements, fork from the parent line and
+merge into that hardware baseline; later work forks from the new line.
+Two consequences are worth stating because they are exactly the questions
+that come up in practice. First, later versions of the parent do
+\emph{not} contain the work that created the new reference. Second, a fix
+made on the parent after the fork is \emph{not} in the child unless it is
+carried over explicitly (\cref{fig:hardware-fork}).
+
+\paragraph{Release gate.}
+Every planned baseline is a \emph{gate} (\cref{def:gate}). Its
+\emph{targeted set} $\mathcal{B}(g)$ is the set of branches currently
+committed to it. Publishing the baseline is a single operation that
+releases it and merges every branch of its targeted set. Before that,
+every member must be verified, and anything it depends on must already be
+released or be released in the same operation; whatever is not ready is
+re-targeted or discarded first (\cref{rule:gate}). This is the
+Stage-Gate idea~\citep{cooper1990stagegate} applied to versions instead of
+projects, and it removes the most common source of misleading release
+notes: work that was ``in'' the version on the plan but quietly did not
+make it (\cref{fig:release-gate}).
+
+\paragraph{Dependencies, propagations and launch bundles.}
+Three optional relations cover the cases where versions and branches of
+different lines are tied together (\cref{def:relations}). A
+\emph{dependency} says that a branch can only be delivered with or after
+another branch or baseline, for example a firmware improvement that needs
+hardware \texttt{Rev~B}, or work blocked by a supplier sample. A
+\emph{propagation} says that a branch carries the change of another branch
+to a different stream or line: a back-port or forward-port. A change that
+must reach several versions is therefore one branch per target, linked by
+propagations, never one branch with several endings (\cref{rule:closure});
+that is how a missing back-port becomes visible. A \emph{launch bundle}
+is a set of planned baselines of different lines that are published
+together or not at all, for example hardware \texttt{Rev~B} with firmware
+\texttt{v2.0} and app \texttt{5.0}.
+
+\paragraph{Life cycle of a reference.}
+In a portfolio with high rotation, references are retired as often as
+they are created, and the rules for what may still change on an old
+reference are usually tribal knowledge. HPB makes them explicit. Every
+line has up to four dated milestones: end of sale, end of production,
+start of security-only maintenance and end of service
+(\cref{def:lifecycle}). They divide its life into phases, and
+\cref{tab:phases} in \cref{app:formal} says which branches and baselines
+each phase still accepts (\cref{rule:lineage}). Supplier notices are a frequent trigger in
+the later phases: a product change notice or an end-of-life notice for a
+component usually opens a lab evolution (qualify an alternative) or a task
+(last-time buy), targeted at a hardware baseline that is either
+interchangeable or, if form, fit or function change, a line fork.
+
+
+\paragraph{Deployment overlay.}
+The questions a product manager is asked most often are about customers:
+\emph{who is exposed to this defect, who has not upgraded, which promise
+has slipped?} An optional \emph{deployment overlay} (\cref{def:deployment})
+records the rollout status and installed base of each released baseline,
+the configuration each customer runs, and the commitments made on each
+branch. ``Customers exposed to X-118'' is then simply the set of customers
+whose configuration contains a version in which X-118 occurs.
+
+\subsection{What you get for free}
+\label{sec:model-free}
+
+The point of the rules is that the documents a product manager usually
+compiles by hand become \emph{queries on the graph}. Four of them are
+stated precisely, with proof sketches, in \cref{app:formal}:
+\begin{itemize}[leftmargin=1.5em,itemsep=1pt,topsep=2pt]
+  \item \textbf{Change log.} The content of a version is the set of
+        branches it closed; grouped by type, it is the release note
+        (\cref{prop:changelog}).
+  \item \textbf{Escaped defects.} Every issue belongs to exactly one
+        version: the one in which it was observed (\cref{prop:escaped}).
+  \item \textbf{Work in progress.} At any moment, the open and targeted
+        branches are a well-defined set, split by type, to which Little's
+        law~\citep{little1961} applies (\cref{prop:wip}).
+  \item \textbf{Lineage.} Every reference has a single ancestry and every
+        version a single chain of predecessors, so ``is this fix in that
+        version?'' always has a yes-or-no answer (\cref{prop:lineage}).
+\end{itemize}
+The last point has a practical corollary that I consider one of the most
+useful things HPB shows. A fix merged on a maintenance stream, or on a
+parent line after a line fork, is not contained in the main stream or the
+child line. The diagram makes the question ``must this fix be carried
+over?'' visible, and the rules force the answer to be recorded: either as
+a propagated branch or as an explicit decision (\cref{fig:backport}).

@@ -1,0 +1,87 @@
+{
+  "name": "remark-hpb",
+  "version": "1.0.0",
+  "description": "remark (unified) and markdown-it plugins that turn ```hpb fenced code blocks into inline HPB (Horizontal Product Branch) SVG diagrams.",
+  "license": "MIT",
+  "author": "Achraf Bouchtarouif El Khiat <achrafbouchtarouif@gmail.com>",
+  "homepage": "https://github.com/AchrafBr1/hpb/tree/main/packages/remark-hpb#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AchrafBr1/hpb.git",
+    "directory": "packages/remark-hpb"
+  },
+  "bugs": {
+    "url": "https://github.com/AchrafBr1/hpb/issues"
+  },
+  "keywords": [
+    "hpb",
+    "remark",
+    "remark-plugin",
+    "unified",
+    "markdown-it",
+    "markdown-it-plugin",
+    "diagram",
+    "svg",
+    "horizontal-product-branch"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./markdown-it": {
+      "import": {
+        "types": "./dist/markdown-it.d.ts",
+        "default": "./dist/markdown-it.js"
+      },
+      "require": {
+        "types": "./dist/markdown-it.d.cts",
+        "default": "./dist/markdown-it.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsup",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hpb/core": "workspace:^"
+  },
+  "devDependencies": {
+    "@types/markdown-it": "14.1.2",
+    "@types/node": "20.17.10",
+    "markdown-it": "14.1.0",
+    "rehype-raw": "7.0.0",
+    "rehype-stringify": "10.0.1",
+    "remark-parse": "11.0.0",
+    "remark-rehype": "11.1.1",
+    "tsup": "8.3.5",
+    "typescript": "5.6.3",
+    "unified": "11.0.5",
+    "vitest": "2.1.8"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

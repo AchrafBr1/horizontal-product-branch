@@ -1,0 +1,267 @@
+% ---------------------------------------------------------------------
+%  appendix-a-card.tex -- HPB notation quick-reference card
+%  Glyph column drawn with hpb.sty v1.0 (normative glyph sizes).
+% ---------------------------------------------------------------------
+\section{Notation Quick-Reference Card}
+\label{app:card}
+
+Print this card and keep it next to the diagram the first few times you
+read one. \Cref{tab:card-types} gives the four branch types with their
+lane, letter and color; \cref{tab:card,tab:card-branches} list every
+glyph, what it means and the \texttt{hpb.sty} macro that draws it
+(\cref{app:package}); the ten reading rules at the end are all you need to
+read any HPB diagram. The notation itself is defined in
+\cref{sec:notation}, the model behind it in \cref{sec:model} and
+\cref{app:formal}.
+
+\providecommand{\HPBmac}[1]{\texttt{\textbackslash #1}}
+% \HPBglyph[<hpbgraph keys>]{<hpb macros>}: one glyph sample with 3pt of
+% vertical padding (glyph sizes are normative; only spacing is reduced).
+% Same definition as in sections/05-notation.tex.
+\providecommand{\HPBglyph}[2][]{%
+  \begin{hpbgraph}[col=0.55cm,lane=0.9cm,legend=1.3cm,#1]#2%
+    \path ([yshift=3pt]current bounding box.north)
+          ([yshift=-3pt]current bounding box.south);%
+  \end{hpbgraph}}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Branch types: legend box, start node, lane, color and intent.}
+  \label{tab:card-types}
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabular}{@{}>{\centering\arraybackslash}m{3.3cm}
+      >{\centering\arraybackslash}m{0.8cm}
+      >{\centering\arraybackslash}m{0.8cm}
+      >{\raggedright\arraybackslash}m{2.6cm}
+      >{\raggedright\arraybackslash}m{6.0cm}@{}}
+    \toprule
+    Legend box \& start node & Type & Lane & Color & Intent \\
+    \midrule
+    \HPBglyph[legend=1.9cm]{\hpblane{0}{imp}{Improvement (I)}{0}{0.6}
+      \hpbstart{imp}{0.9}{0}{I}}
+    & $\mathsf{I}$ & $+1$ & violet \texttt{\#C4B5FD}
+    & Proactive: a request to make the product better. \\
+    \HPBglyph[legend=1.9cm]{\hpblane{0}{lab}{Lab (L)}{0}{0.6}
+      \hpbstart{lab}{0.9}{0}{L}}
+    & $\mathsf{L}$ & $+2$ & teal \texttt{\#5EEAD4}
+    & Proactive: laboratory evolution, evaluation or qualification. \\
+    \HPBglyph[legend=1.9cm]{\hpblane{0}{iss}{Issue (X)}{0}{0.6}
+      \hpbstart{iss}{0.9}{0}{X}}
+    & $\mathsf{X}$ & $-1$ & coral \texttt{\#FB8A6E}
+    & Reactive: a defect observed in the fork baseline. \\
+    \HPBglyph[legend=1.9cm]{\hpblane{0}{task}{Task (T)}{0}{0.6}
+      \hpbstart{task}{0.9}{0}{T}}
+    & $\mathsf{T}$ & $-2$ & green \texttt{\#6EE7B7}
+    & Reactive or internal: engineering work needed to keep the product
+      operable. \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{HPB quick-reference card, part~1: lines, baselines and time.
+    Glyphs at normative size, drawn with the listed macro (arguments in
+    \cref{tab:api}).}
+  \label{tab:card}
+  \renewcommand{\arraystretch}{1.0}
+  \renewcommand{\tabularxcolumn}[1]{m{#1}}
+  \begin{tabularx}{\linewidth}{@{}>{\centering\arraybackslash}m{3.3cm}
+      >{\raggedright\arraybackslash}X
+      >{\raggedright\arraybackslash}m{3.75cm}@{}}
+    \toprule
+    Glyph & Element and how to read it & Macro \\
+    \midrule
+    \HPBglyph{\hpbmainline{0}{2.2}\hpbmainline*{2.2}{4.2}}
+    & \textbf{Main line}: the product; solid = history, dashed = plan.
+    & \HPBmac{hpbmainline}, \HPBmac{hpbmainline*} \\
+    \HPBglyph{\hpbmainline{0}{2}\hpborigin{0}{Product A}}
+    & \textbf{Origin}: creation of the reference (not a baseline) and the
+      product reference in the key column.
+    & \HPBmac{hpborigin} \\
+    \HPBglyph{\hpbmainline{-1.2}{1.2}\hpbrelease{0}{v1.1}}
+    & \textbf{Released baseline}: immutable version with its name tag.
+    & \HPBmac{hpbrelease} \\
+    \HPBglyph{\hpbmainline*{-2.4}{2.6}\hpbplanned*{-1.6}{v1.2}{Jan}
+      \hpbplanned{1.6}{v1.3}{Mar}}
+    & \textbf{Planned baseline}: dashed node and tag, target date; a gate.
+      ``!'' badge, red tag and date: \emph{overdue}, the target date has
+      passed.
+    & \HPBmac{hpbplanned}, \HPBmac{hpbplanned*} \\
+    \HPBglyph{\hpbmainline{-1.8}{1.2}\hpbhardware{-0.7}{Rev B}}
+    & \textbf{Hardware baseline}: diamond; with \emph{new ref.}, the first
+      baseline of a new line (line fork).
+    & \HPBmac{hpbhardware} \\
+    \HPBglyph{\hpbmainline{-1.8}{1.2}\hpbprocess{-0.7}{PC-7}}
+    & \textbf{Process baseline}: change to how the product is built (kind
+      \textsf{other}).
+    & \HPBmac{hpbprocess} \\
+    \HPBglyph[lane=0.7cm]{\hpbmainline{-0.6}{3.4}\node[hpb/baseline] at (0,0) {};
+      \hpbstream{0}{-1}{3.4}}
+    & \textbf{Release stream}: maintenance stream leaving a released
+      baseline, with its own band.
+    & \HPBmac{hpbstream} \\
+    \HPBglyph[lane=0.7cm]{\hpbmainline{-1.4}{1.4}\hpbmilestone{0}{end of sale}}
+    & \textbf{Life-cycle milestone}: end of sale, end of production,
+      security only.
+    & \HPBmac{hpbmilestone} \\
+    \HPBglyph[lane=0.7cm]{\hpbmainline{-1.2}{1.2}\node[hpb/baseline] at (0,0) {};
+      \hpbcollapsed{0}{12}}
+    & \textbf{Collapsed history}: number of merged branches not drawn.
+    & \HPBmac{hpbcollapsed} \\
+    \HPBglyph[lane=0.7cm]{\hpbmainline{-1.6}{0}\hpbeos{0}\path (1.2,0);}
+    & \textbf{End of support}: the line is retired; no new branches.
+    & \HPBmac{hpbeos} \\
+    \HPBglyph[lane=0.7cm]{\hpbmainline{-1.6}{1.6}\hpbmainline{0}{1.6}[1.2]
+      \hpblinefork{0}{0}{1.2}\node[hpb/hardware] at (0,1.2) {};}
+    & \textbf{Line fork}: lineage connector from the parent main line to the
+      hardware diamond, the first baseline of the child line $P'$
+      (own band), with $\mathrm{parent}(P')=P$.
+    & \HPBmac{hpblinefork} \\
+    \midrule
+    \HPBglyph[lane=0.7cm]{\hpbmainline{-1.6}{0}\hpbmainline*{0}{1.6}\hpbnow{0}{0}{0.2}}
+    & \textbf{NOW}: history to the left, plan to the right.
+    & \HPBmac{hpbnow} \\
+    \HPBglyph[lane=0.7cm]{\hpbmainline*{-0.4}{1.6}[0.4]\hpbmainline*{-0.4}{1.6}[-0.6]
+      \node[hpb/planned] at (0.6,0.4) {};\node[hpb/planned] at (0.6,-0.6) {};
+      \hpbbundle{-0.2,-1.0}{1.4,0.8}{}}
+    & \textbf{Launch bundle}: planned baselines of several lines published
+      together or not at all.
+    & \HPBmac{hpbbundle} \\
+    \HPBglyph{\hpbaxis{0}{3.4}{0}\hpbtick{0.5}{Jan}{0}\hpbtick{2.3}{Apr}{0}}
+    & \textbf{Ordinal time axis}: calendar periods as ticks only.
+    & \HPBmac{hpbaxis}, \HPBmac{hpbtick} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{HPB quick-reference card, part~2: branches, terminals, steps and markers
+    (\HPBmac{hpbbranch} draws the start node, the path, the label and the
+    terminal in one call).}
+  \label{tab:card-branches}
+  \renewcommand{\arraystretch}{1.0}
+  \renewcommand{\tabularxcolumn}[1]{m{#1}}
+  \begin{tabularx}{\linewidth}{@{}>{\centering\arraybackslash}m{3.3cm}
+      >{\raggedright\arraybackslash}X
+      >{\raggedright\arraybackslash}m{3.75cm}@{}}
+    \toprule
+    Glyph & Element and how to read it & Macro \\
+    \midrule
+    \HPBglyph[lane=0.75cm]{\hpbmainline{-0.6}{3.8}
+      \node[hpb/baseline] at (0,0) {};
+      \hpbbranch[label={X-31 Crash}]{iss}{0}{-1}{1.3}{3.8}{none}{}}
+    & \textbf{Branch}: forks from a baseline and runs on its type lane;
+      start node with type letter, label with reference and title.
+    & \HPBmac{hpbbranch}, \HPBmac{hpbstart}, \HPBmac{hpblabel} \\
+    \HPBglyph[lane=0.75cm]{\hpbmainline{-0.6}{4.6}
+      \node[hpb/baseline] at (0,0) {};
+      \node[hpb/baseline] at (4,0) {};
+      \hpbbranch{imp}{0}{1}{1.2}{2.7}{merge}{4}}
+    & \textbf{Merged}: check mark; the path rejoins the closing baseline.
+    & \HPBmac{hpbbranch} (\texttt{merge}) \\
+    \HPBglyph[lane=0.75cm]{\hpbmainline{-0.6}{3.8}
+      \node[hpb/baseline] at (0,0) {};
+      \hpbbranch{task}{0}{-1}{1.3}{3.3}{discard}{}}
+    & \textbf{Discarded}: gray path and cross; read the rationale.
+    & \HPBmac{hpbbranch} (\texttt{discard}) \\
+    \HPBglyph[lane=0.75cm]{\hpbmainline{-0.6}{3.8}
+      \node[hpb/baseline] at (0,0) {};
+      \hpbbranch{lab}{0}{1}{1.3}{3.3}{open}{}
+      \draw[hpb/now] (3.3,1.6) -- (3.3,0.4);}
+    & \textbf{Open}: hollow head on the NOW marker.
+    & \HPBmac{hpbbranch} (\texttt{open}) \\
+    \HPBglyph[lane=0.75cm]{\hpbmainline{-0.6}{2.7}\hpbmainline*{2.7}{5}
+      \node[hpb/baseline] at (0,0) {};
+      \node[hpb/planned] at (4.4,0) {};
+      \hpbbranch{iss}{0}{-1}{1}{2.7}{target}{4.4}}
+    & \textbf{Targeted}: dashed continuation to the planned baseline.
+    & \HPBmac{hpbbranch} (\texttt{target}) \\
+    \HPBglyph[col=0.5cm,lane=0.75cm]{\hpbmainline*{-0.6}{4.2}
+      \node[hpb/planned] at (2,0) {};
+      \node[hpb/planned] at (3.6,0) {};
+      \draw[hpb/path] (-2.2,-1) -- (0,-1);
+      \hpbstep{iss}{-1.5}{-1}{done}
+      \hpbterminal{target}{iss}{0}{-1}
+      \hpbtarget[faded]{0}{-1}{2}
+      \hpbtarget{0}{-1}{3.6}}
+    & \textbf{Re-targeted}: a labeled done step records the decision; the
+      former (nearer) target remains as a faded dashed continuation, the
+      new target is drawn at full strength.
+    & \HPBmac{hpbtarget} (\texttt{faded}), \HPBmac{hpbstep} \\
+    \HPBglyph[col=0.6cm,lane=0.7cm]{\draw[hpb/path] (-0.4,0) -- (4.4,0);
+      \hpbstep{imp}{0}{0}{done}\hpbstep{imp}{1.33}{0}{todo}
+      \hpbstep{lab}{2.67}{0}{pass}\hpbstep{lab}{4}{0}{fail}}
+    & \textbf{Steps}: sub-task done, pending; test or verification passed,
+      failed. A pass citing a candidate of the target verifies the branch.
+    & \HPBmac{hpbstep} \\
+    \HPBglyph[col=0.6cm,lane=0.7cm]{\draw[hpb/path] (-0.6,0) -- (0.5,0)
+      -- (0.5,0.6);\hpbterminal{merge}{iss}{0}{0}
+      \hpbpoststep{iss}{0.5}{3}{0}{pass}}
+    & \textbf{Post-closure step}: e.g., effectiveness of a corrective action,
+      on a dotted continuation after the terminal.
+    & \HPBmac{hpbpoststep} \\
+    \midrule
+    \HPBglyph[lane=0.75cm]{\hpbmainline*{1.3}{4.6}
+      \node[hpb/planned] at (4,0) {};
+      \hpbgate[0.8]{4}{0}{-1}{}
+      \hpbterminal{target}{iss}{1.5}{-1}
+      \hpbtarget{1.5}{-1}{4}}
+    & \textbf{Gate}: every dashed continuation entering the band is a
+      targeted branch; the baseline cannot be published while one of them
+      is unverified (\cref{rule:gate}).
+    & \HPBmac{hpbgate} \\
+    \HPBglyph[col=0.6cm,lane=0.7cm]{\hpbnode{imp}{0}{0}\hpbnode{iss}{4}{0}
+      \hpbdepends{0,0}{4,0}{}\hpbnode{iss}{0}{-0.9}\hpbnode{iss}{4}{-0.9}
+      \hpbpropagates{0,-0.9}{4,-0.9}{}}
+    & \textbf{Dependency} (dotted, open head) and \textbf{propagation}
+      (dashed, filled head) between branches or baselines.
+    & \HPBmac{hpbdepends}, \HPBmac{hpbpropagates} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection*{Reading rules}
+
+\begin{enumerate}[label=\textbf{Q\arabic*},leftmargin=*,itemsep=2pt,topsep=3pt]
+  \item \textbf{Find the product.} The thick horizontal line is the product
+        line; its tags are its versions, oldest at the left.
+  \item \textbf{Read the sides.} Above the line: how the product gets
+        better (improvements nearest, laboratory work further out). Below
+        the line: what is wrong with it and how it is kept correct (issues
+        nearest, tasks further out).
+  \item \textbf{Read the NOW marker.} Left of NOW is recorded history and
+        does not change; right of NOW is the plan and is expected to change.
+  \item \textbf{What does a version contain?} Follow every path that
+        rejoins its node: these are the branches it closed, $C(v)$
+        (\cref{prop:changelog}).
+  \item \textbf{Where was a defect observed?} Follow an $\mathsf{X}$
+        branch back to the baseline it forks from: that baseline is the
+        version in which the issue was observed, $E(v)$
+        (\cref{prop:escaped}).
+  \item \textbf{What is in progress?} Count the heads on the NOW marker:
+        hollow heads are open work; heads with a dashed continuation are
+        committed to the planned baseline at its end.
+  \item \textbf{Can the next version ship?} Look at its gate band: every
+        dashed continuation that enters it belongs to a targeted branch,
+        and any of them without a passed verification step blocks the
+        release (\cref{rule:gate}).
+  \item \textbf{What was abandoned?} Gray paths ending in a cross were
+        closed without a version; their labels or comments give the
+        rationale.
+  \item \textbf{Where did a reference come from?} A diamond with
+        \emph{new ref.}\ starts a new product reference; follow the
+        vertical connector down to the parent line. Ticks mark life-cycle
+        milestones, and a bar labeled \textsf{EoS} ends a retired line.
+        Each line or stream is read relative to its own main line.
+  \item \textbf{Do not measure lengths.} The time axis is ordinal: one
+        column per event. Durations are computed, not read off the drawing
+        (\cref{rem:ordinal}).
+\end{enumerate}
+
+% keep the whole card together, before the next appendix
+\clearpage

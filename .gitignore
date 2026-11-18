@@ -1,0 +1,25 @@
+# dependencies and build output
+node_modules/
+dist/
+.next/
+out/
+coverage/
+_site/
+.turbo/
+*.tsbuildinfo
+
+# LaTeX build artefacts (paper/HPB-v1.0.pdf is the archived release and IS tracked)
+*.aux
+*.log
+*.out
+*.bbl
+*.blg
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+paper/main.pdf
+
+# OS / editor
+.DS_Store
+Thumbs.db

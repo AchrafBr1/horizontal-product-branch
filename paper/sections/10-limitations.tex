@@ -1,0 +1,150 @@
+% ---------------------------------------------------------------------
+%  10-limitations.tex -- limits of the method and how to evaluate it
+% ---------------------------------------------------------------------
+\section{Limitations and How to Evaluate HPB}
+\label{sec:limitations}
+
+HPB comes out of years of running real products, but this paper does not
+prove that it works better than what you use today. It offers a method, a
+notation and tools, and explains why I believe they help. This section says
+where HPB fits, where it does not, what can go wrong, and how to find out
+whether it pays off in your own organization.
+
+% =====================================================================
+\subsection{Where HPB fits, and where it does not}
+\label{sec:limitations-fit}
+
+HPB earns its keep when three things are true at once: the product has
+\emph{identifiable versions} that customers or devices actually run;
+\emph{several pieces of work} are in flight on the same product; and people
+need to know \emph{which version} contains a given change. That is the daily
+reality of products that combine hardware, firmware and software, of
+software shipped in discrete versions with long support, and of regulated
+contexts, where HPB supports formal configuration management
+\citep{ieee828,iso10007} without replacing it.
+
+HPB adds little in four situations. With \emph{continuous deployment
+without versions} \citep{humble2010cd}, every merge is its own release and
+baselines lose their meaning; a reduced timeline with deployments as
+baselines is possible, but I do not claim it beats a deployment log. When
+a product has \emph{one change at a time}, the diagram is a straight line
+and a changelog is enough. \emph{Before the first release} there is
+nothing to fork from; early exploration can live as lab branches of a
+provisional line. And \emph{portfolio decisions}, how to spread people and
+money across many products, need aggregated views the method does not
+define yet.
+
+% =====================================================================
+\subsection{Known limitations}
+\label{sec:limitations-known}
+
+\paragraph{No empirical evidence yet.}
+I report no data showing that HPB improves planning accuracy, traceability,
+quality or decision speed, and none should be read into this paper. The
+benefits I describe are hypotheses that follow from the structure of the
+method; \cref{sec:limitations-evaluate} explains how to test them.
+
+\paragraph{Designer bias.}
+I designed HPB from my own practice and built the prototype in that same
+context. The method may reflect the needs and vocabulary of that context
+more than I can see, and the comparison in \cref{sec:gaps} rates HPB by
+design, not by observed use.
+
+\paragraph{Scale.}
+The notation is designed for one product line with tens of open branches.
+Collapsed history and lane packing (\cref{fig:scale}) stretch that range,
+but screen width and human attention are still limits. A line with
+hundreds of open branches needs filters, and a filtered diagram no longer
+shows everything at a glance.
+
+\paragraph{Garbage in, garbage out.}
+Every metric and every audit answer depends on three fields being right:
+the fork baseline, the closing baseline and the type of each branch. The
+fork baseline of issues is the weak spot: when nobody records the version
+in which a defect was observed, the default quietly blames recent
+releases. HPB reduces this risk by making someone accountable for these
+fields at intake and by flagging inferred values; it does not remove it.
+
+\paragraph{Culture.}
+HPB makes decisions visible, including the decision not to do something
+and the decision to ship late. Where that feels threatening, people comply
+on the surface: they never discard, or they re-target silently. No method
+fixes that by itself; HPB can only make the symptoms show in the diagram.
+
+\paragraph{Deliberate simplifications.}
+A branch has one fork baseline and closes into one baseline
+(\cref{rule:origin,rule:closure}), so a fix that must reach several
+maintained versions is one branch per version, linked as propagations,
+much like cherry-picking \citep{chacon2014progit}: change logs stay exact,
+but widely back-ported fixes multiply branches. A line has one parent, so
+merging references or a family of variants on a shared platform is
+recorded as annotations and sibling lines. Security, regulatory or
+customer-specific work are attributes, not new lanes. And for hardware the
+moment of ``release'' is not crisp; HPB fixes a default per baseline kind,
+and an organization that uses another must say so, or its lead times will
+not be comparable.
+
+% =====================================================================
+\subsection{How to evaluate HPB in your organization}
+\label{sec:limitations-evaluate}
+
+You do not need a research project to find out whether HPB helps you. You
+need one product line, two release cycles and the discipline to compare
+before and after honestly.
+\begin{enumerate}[leftmargin=1.8em,itemsep=1pt,topsep=3pt]
+  \item \textbf{Take a baseline.} Rebuild the last year of one line in
+        derived mode (\cref{sec:implementation}) or in HPB Markup, flag
+        every fork baseline you had to guess, and compute the metrics you
+        can.
+  \item \textbf{Ask ten questions first.} Write down ten questions your
+        team gets asked (which version first contained this fix, what is
+        still open for the next release), time the answers with your
+        current tools and check them against your release records.
+  \item \textbf{Run HPB for two release cycles} with the practices of
+        \cref{sec:operating}, without changing your team process at the
+        same time.
+  \item \textbf{Ask an equivalent set of questions again} with the
+        diagram, built from the same data, so HPB does not win just because
+        its data is cleaner.
+  \item \textbf{Look at outcomes and cost:} rule violations, gate slip with
+        what was moved or discarded, age of open work, escaped defects, and
+        the time spent keeping HPB up to date.
+\end{enumerate}
+
+\noindent Four hypotheses are worth testing, each with the result that
+would count against HPB:
+\begin{description}[leftmargin=0pt,itemsep=1pt,font=\normalfont\bfseries]
+  \item[H1 Comprehension.] Questions about origin, parallel work and
+        closure are answered more accurately, and not more slowly, with the
+        diagram. \emph{Against:} no gain, or a gain paid with much longer
+        answers.
+  \item[H2 Discipline.] Violations of R1--R4 fall to a low, stable rate.
+        \emph{Against:} silent closures and releases with unverified
+        committed work that stay frequent.
+  \item[H3 Decisions.] More slips and descopes are recorded as decisions,
+        and fewer branches stay open forever. \emph{Against:} unchanged age
+        profiles, descopes still found out after the release.
+  \item[H4 Cost.] Keeping HPB up to date costs little compared with the
+        meetings it uses. \emph{Against:} data entry the team judges out of
+        proportion, or quiet abandonment after the trial.
+\end{description}
+
+\noindent With few releases a year, differences between baselines are
+mostly noise, so look at trends; everything looks better in the first
+month, so compare the first cycle with the last; and never use these
+numbers to judge individuals. If your evaluation shows that HPB does
+\emph{not} help in your context, I would especially like to hear about it.
+
+% =====================================================================
+\subsection{What comes next}
+\label{sec:limitations-next}
+
+Four directions follow from these limits: a \emph{portfolio view} that
+aggregates many lines sharing platforms or teams without breaking
+\cref{rule:origin,rule:closure}; \emph{automatic links} to version control
+and build systems, so that release tags, build numbers and hardware
+revision records create baselines and merges by themselves, with semantic
+versioning \citep{semver} giving the size of a software baseline; an
+\emph{interchange format}, for which HPB Markup is the first candidate; and
+a \emph{versioned specification} of the notation, changed only on evidence
+about readability, not on taste. The conclusion says how to contribute.

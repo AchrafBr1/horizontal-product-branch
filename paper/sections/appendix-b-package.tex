@@ -1,0 +1,285 @@
+% ---------------------------------------------------------------------
+%  appendix-b-package.tex -- using the hpb.sty package (API v1.0)
+% ---------------------------------------------------------------------
+\section{Using the \texttt{hpb.sty} Package}
+\label{app:package}
+
+The notation of \cref{sec:notation} is distributed as a single \LaTeX{}
+package, \texttt{hpb.sty} (version~1.1, MIT license). Every HPB diagram in
+this paper is drawn with it. The point is standardization: glyph sizes,
+stroke widths, colors, fonts and the placement of tags, labels and terminals
+are fixed by the package, so diagrams drawn by different people look the
+same and follow the layout rules of \cref{sec:notation}. Use it for papers,
+reports and specifications; for web pages and documentation that change
+often, HPB Markup (\cref{sec:tooling,app:markup}) draws the same notation
+from text. This appendix summarizes the package interface.
+
+\paragraph{Installation and requirements.}
+Copy \texttt{hpb.sty} next to the main \texttt{.tex} file (on Overleaf,
+upload it to the project root) and load it with \texttt{\textbackslash
+usepackage\{hpb\}}. The package requires only TikZ, \texttt{xcolor} and
+\texttt{xparse}, which are part of every current \TeX{} distribution; it
+loads the TikZ libraries \texttt{positioning}, \texttt{calc},
+\texttt{shapes.geometric}, \texttt{arrows.meta},
+\texttt{decorations.pathmorphing}, \texttt{backgrounds} and \texttt{fit}.
+It uses no engine-specific features, needs no shell escape and no external
+files, and is intended for pdf\LaTeX{} as used by Overleaf and arXiv.
+Compile once with the engine of your submission before relying on it.
+
+\paragraph{Canvas and coordinates.}
+Every diagram is an \texttt{hpbgraph} environment, a TikZ picture in which
+the $x$ unit is one ordinal column and the $y$ unit is one lane. All
+macros therefore take plain numbers: columns (integers, or decimals for
+fine adjustment) and lanes, with $0$ for the main line, positive lanes
+above it and negative lanes below it (\cref{sec:notation}). A child line
+created by a line fork is simply another $y$ value (e.g., $-3.5$). The
+environment accepts three keys: \texttt{col} (column width, default
+1.1\,cm), \texttt{lane} (lane height, default 1.0\,cm; tags are anchored at
+a fixed distance above their node, and 1.0\,cm is the smallest value that
+keeps a tag clear of a branch on lane $+1$) and \texttt{legend} (width of
+the legend and origin boxes, default 2.3\,cm). This paper sets one canvas
+for all diagrams with \texttt{\textbackslash hpbset\{col=0.75cm, lane=1cm,
+legend=1.7cm\}}, because one document uses one canvas. Any other key is passed to the
+underlying \texttt{tikzpicture}; \texttt{\textbackslash hpbset} sets
+defaults for a whole document. Only spacing scales with these keys; glyph
+sizes are fixed in points by the notation. Plain TikZ commands can be mixed
+freely with the package macros in the same coordinates. Internally the
+package draws on six layers (background for gate and bundle bands, guides,
+branch paths and connectors, main lines and streams, nodes, and a front
+layer for tags and labels), so that the order of commands in the source
+does not affect the result.
+
+\begin{figure}[tbp]
+  \centering
+  \begin{minipage}[c]{0.41\linewidth}
+\begin{lstlisting}[style=hpblatex,basicstyle=\ttfamily\scriptsize,
+  moretexcs={hpbgate,hpbtarget}]
+\begin{hpbgraph}[col=0.7cm, legend=1.5cm]
+  % lanes and main line
+  \hpblane{1}{imp}{Improv. (I)}{0}{8.6}
+  \hpblane{-1}{iss}{Issue (X)}{0}{8.6}
+  \hpbmainline{0}{6}
+  \hpbmainline*{6}{8.6}
+  \hpborigin{0}{Product A}
+  % baselines
+  \hpbrelease{1}{v2.0}
+  \hpbrelease{5}{v2.0.1}
+  \hpbplanned{8}{v2.1}{Jun}
+  % branches
+  \hpbbranch[label={I-40 Export}]
+    {imp}{1}{1}{2}{6}{target}{8}
+  \hpbbranch[label={X-77 Login}]
+    {iss}{1}{-1}{3}{4}{merge}{5}
+  % markers
+  \hpbnow{6}{1}{-1}
+  \hpbgate[1.5]{8}{1}{-1}{gate v2.1}
+\end{hpbgraph}
+\end{lstlisting}
+  \end{minipage}\hfill
+  \begin{minipage}[c]{0.57\linewidth}
+    \centering
+    % natural size (about 8.3cm wide): no scaling, glyphs at normative size
+    \begin{hpbgraph}[col=0.7cm, legend=1.5cm]
+      % lanes and main line
+      \hpblane{1}{imp}{Improv. (I)}{0}{8.6}
+      \hpblane{-1}{iss}{Issue (X)}{0}{8.6}
+      \hpbmainline{0}{6}
+      \hpbmainline*{6}{8.6}
+      \hpborigin{0}{Product A}
+      % baselines
+      \hpbrelease{1}{v2.0}
+      \hpbrelease{5}{v2.0.1}
+      \hpbplanned{8}{v2.1}{Jun}
+      % branches
+      \hpbbranch[label={I-40 Export}]
+        {imp}{1}{1}{2}{6}{target}{8}
+      \hpbbranch[label={X-77 Login}]
+        {iss}{1}{-1}{3}{4}{merge}{5}
+      % markers
+      \hpbnow{6}{1}{-1}
+      \hpbgate[1.5]{8}{1}{-1}{gate v2.1}
+    \end{hpbgraph}
+  \end{minipage}
+  \caption{A complete \texttt{hpb.sty} example (illustrative data): the
+    source (left) and its rendering (right). Columns are ordinal
+    (one event per column) and lanes follow \cref{sec:notation}. The issue X-77,
+    observed in \texttt{v2.0}, is merged into the patch baseline
+    \texttt{v2.0.1}; the improvement I-40 is open at NOW and targeted at the
+    planned baseline \texttt{v2.1}, whose gate it keeps closed until it is
+    verified, re-targeted or discarded.}
+  \label{fig:package-example}
+\end{figure}
+
+\paragraph{Interface.}
+\Cref{tab:api} lists the public macros and \cref{tab:api-keys} the options
+of \texttt{\textbackslash hpbbranch}, the central macro: one call draws a
+complete branch, i.e., the fork from its baseline, the start node with the
+type letter, the run along the lane, the terminal and, for merged and
+targeted branches, the connection to the closing or target baseline. Types
+are written \texttt{imp}, \texttt{iss}, \texttt{task}, \texttt{lab} (or
+\texttt{I}, \texttt{X}, \texttt{T}, \texttt{L}); an unknown type, terminal
+or step state stops compilation with an explicit error message rather than
+producing a silently wrong diagram. The color names (\texttt{hpbInk},
+\texttt{hpbMain}, \texttt{hpbImp}, \texttt{hpbIss}, \texttt{hpbTask},
+\texttt{hpbLab}, \texttt{hpbHw}, \texttt{hpbDisc}, \texttt{hpbNow},
+\texttt{hpbGuide}, \texttt{hpbLate}) are part of the interface, so that
+non-HPB figures, such as charts and state diagrams, can use the same palette.
+
+\providecommand{\HPBmac}[1]{\texttt{\textbackslash #1}}
+\providecommand{\HPBarg}[1]{\ensuremath{\langle}\textit{#1}\ensuremath{\rangle}}
+
+\begin{table}[tbp]
+  \centering
+  \small
+  \caption{Options of \texttt{\textbackslash hpbbranch} (all optional).}
+  \label{tab:api-keys}
+  \renewcommand{\arraystretch}{1.0}
+  \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{3.0cm}
+      >{\raggedright\arraybackslash}p{2.0cm}
+      >{\raggedright\arraybackslash}X@{}}
+    \toprule
+    Key & Default & Effect \\
+    \midrule
+    \texttt{line=}\HPBarg{y} & \texttt{0}
+      & $y$ of the line the branch forks from (child line or stream). \\
+    \texttt{mergeline=}\HPBarg{y} & = \texttt{line}
+      & $y$ of the line the branch merges into. \\
+    \texttt{forkoff=}\HPBarg{cols} & \texttt{0.5}
+      & Offset of the vertical drop from the fork baseline (\cref{sec:notation}). \\
+    \texttt{mergeoff=}\HPBarg{cols} & \texttt{0.5}
+      & Offset of the vertical rise before the merge baseline. \\
+    \texttt{label=}\HPBarg{text} & none
+      & Branch label (reference and title) at the start node. \\
+    \texttt{labelpos=}\HPBarg{pos} & \texttt{above}
+      & Label position, as for \HPBmac{hpblabel}. \\
+    \texttt{letter=}\HPBarg{text} & type letter
+      & Overrides the letter of the start node. \\
+    \texttt{nostart} & --
+      & Omits the start node. \\
+    \texttt{faded} & --
+      & Draws at 35\,\% opacity (former state, e.g., an old target). \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{table}[p]
+  \centering
+  \footnotesize
+  \caption{Public macros of \texttt{hpb.sty} v1.1. Columns and lanes are
+    plain numbers in diagram units; optional arguments in square brackets.
+    \HPBarg{type}: \texttt{imp}, \texttt{iss}, \texttt{task}, \texttt{lab}
+    (legend boxes also accept \texttt{main}, \texttt{hw}, \texttt{disc}).}
+  \label{tab:api}
+  \renewcommand{\arraystretch}{1.0}
+  \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{3.0cm}
+      >{\raggedright\arraybackslash}p{5.6cm}
+      >{\raggedright\arraybackslash}X@{}}
+    \toprule
+    Macro & Arguments & Draws \\
+    \midrule
+    \multicolumn{3}{@{}l}{\textit{Canvas}} \\
+    \texttt{hpbgraph} (env.) & \texttt{[col=, lane=, legend=, }\HPBarg{tikz}\texttt{]}
+      & The canvas: $x$ = column, $y$ = lane. \\
+    \HPBmac{hpbset} & \texttt{\{}\HPBarg{keys}\texttt{\}}
+      & Document-wide defaults for the canvas keys. \\
+    \HPBmac{hpblane} & \HPBarg{lane}\HPBarg{type}\HPBarg{label}\HPBarg{from}\HPBarg{to}
+      & Dotted lane guide and legend box at its left end. \\
+    \midrule
+    \multicolumn{3}{@{}l}{\textit{Lines and baselines}} \\
+    \HPBmac{hpbmainline}[\texttt{*}] & \HPBarg{from}\HPBarg{to}[\HPBarg{y}]
+      & Main line, 3\,pt; starred: dashed (plan). \\
+    \HPBmac{hpborigin} & \HPBarg{col}\HPBarg{label}[\HPBarg{y}]
+      & Creation dot (not a baseline) and product box. \\
+    \HPBmac{hpbrelease} & [\HPBarg{caption}]\HPBarg{col}\HPBarg{name}[\HPBarg{y}]
+      & Released baseline with tag and arrow; optional caption (e.g., applies-to set). \\
+    \HPBmac{hpbplanned}[\texttt{*}] & [\HPBarg{caption}]\HPBarg{col}\HPBarg{name}\HPBarg{date}[\HPBarg{y}]
+      & Planned baseline, dashed tag, target date; starred: overdue (``!'' badge, red). \\
+    \HPBmac{hpbhardware} & [\HPBarg{caption}]\HPBarg{col}\HPBarg{name}[\HPBarg{y}]
+      & Hardware diamond, indigo tag, caption (default \emph{new ref.}). \\
+    \HPBmac{hpbprocess} & [\HPBarg{caption}]\HPBarg{col}\HPBarg{name}[\HPBarg{y}]
+      & Process baseline (square). \\
+    \HPBmac{hpbstream}[\texttt{*}] & [\HPBarg{offset}]\HPBarg{fork col}\HPBarg{y}\HPBarg{to col}[\HPBarg{from y}]
+      & Release stream leaving a baseline; starred: planned. \\
+    \HPBmac{hpbmilestone} & \HPBarg{col}\HPBarg{label}[\HPBarg{y}]
+      & Life-cycle milestone tick. \\
+    \HPBmac{hpbseparator} & \HPBarg{y}\HPBarg{from}\HPBarg{to}
+      & Thin rule between lane bands. \\
+    \HPBmac{hpbcollapsed} & \HPBarg{col}\HPBarg{count}[\HPBarg{y}]
+      & Count badge of collapsed history. \\
+    \HPBmac{hpbeos} & \HPBarg{col}[\HPBarg{y}]
+      & End-of-support bar labeled \textsf{EoS}. \\
+    \HPBmac{hpblinefork} & \HPBarg{col}\HPBarg{from y}\HPBarg{to y}
+      & Lineage connector to a child line. \\
+    \midrule
+    \multicolumn{3}{@{}l}{\textit{Branches and events}} \\
+    \HPBmac{hpbbranch} & [\HPBarg{keys}]\HPBarg{type}\HPBarg{fork col}\HPBarg{lane}%
+      \HPBarg{start col}\HPBarg{end col}\HPBarg{end}\HPBarg{merge col}
+      & Complete branch; \HPBarg{end} $\in$ \{\texttt{merge}, \texttt{target},
+        \texttt{open}, \texttt{discard}, \texttt{none}\}; \HPBarg{merge col}
+        is empty for \texttt{open}, \texttt{discard}, \texttt{none}. \\
+    \HPBmac{hpbtarget} & [\HPBarg{keys}]\HPBarg{from col}\HPBarg{lane}\HPBarg{merge col}
+      & Additional dashed target continuation (re-targeting). \\
+    \HPBmac{hpbstart} & \HPBarg{type}\HPBarg{col}\HPBarg{lane}\HPBarg{letter}
+      & Start node with letter (stand-alone). \\
+    \HPBmac{hpbnode} & \HPBarg{type}\HPBarg{col}\HPBarg{lane}
+      & Plain event node. \\
+    \HPBmac{hpbterminal} & \HPBarg{kind}\HPBarg{type}\HPBarg{col}\HPBarg{lane}
+      & Terminal glyph (stand-alone). \\
+    \HPBmac{hpbstep} & \HPBarg{type}\HPBarg{col}\HPBarg{lane}\HPBarg{state}
+      & Step: \texttt{done}, \texttt{todo}, \texttt{pass}, \texttt{fail}. \\
+    \HPBmac{hpbpoststep} & \HPBarg{type}\HPBarg{from col}\HPBarg{col}\HPBarg{lane}\HPBarg{state}
+      & Step after closure, on a dotted continuation. \\
+    \HPBmac{hpbdepends} & [\HPBarg{tikz}]\HPBarg{x,y}\HPBarg{x,y}\HPBarg{label}
+      & Dependency connector (dotted, open head). \\
+    \HPBmac{hpbpropagates} & [\HPBarg{tikz}]\HPBarg{x,y}\HPBarg{x,y}\HPBarg{label}
+      & Propagation connector (dashed, filled head). \\
+    \HPBmac{hpblabel} & [\HPBarg{pos}]\HPBarg{col}\HPBarg{lane}\HPBarg{text}
+      & Label with white halo (default position \texttt{above}). \\
+    \midrule
+    \multicolumn{3}{@{}l}{\textit{Markers and annotations}} \\
+    \HPBmac{hpbnow} & \HPBarg{col}\HPBarg{lane top}\HPBarg{lane bottom}
+      & NOW marker across the given lanes. \\
+    \HPBmac{hpbgate} & [\HPBarg{right}]\HPBarg{col}\HPBarg{lane top}\HPBarg{lane bottom}\HPBarg{label}
+      & Gate band around a planned baseline. \\
+    \HPBmac{hpbbundle} & \HPBarg{x,y}\HPBarg{x,y}\HPBarg{label}
+      & Launch-bundle frame across lines. \\
+    \HPBmac{hpbfit} & \HPBarg{picture}
+      & Scales a picture down to the line width only if wider. \\
+    \HPBmac{hpbcallout} & [\HPBarg{tikz}]\HPBarg{x,y}\HPBarg{text}\HPBarg{x,y}
+      & Annotation box with leader line. \\
+    \HPBmac{hpbaxis} & \HPBarg{from}\HPBarg{to}\HPBarg{y}
+      & Ordinal time axis. \\
+    \HPBmac{hpbtick} & \HPBarg{col}\HPBarg{text}\HPBarg{y}
+      & Calendar tick under the axis. \\
+    \bottomrule
+  \end{tabularx}
+
+\end{table}
+
+\paragraph{Conventions that the package does not enforce.}
+Two layout rules depend on the data and are left to the author (or to a
+layout algorithm such as \cref{alg:layout}; the HPB Markup renderer
+computes columns and lanes for you). First, each event must be given its own column;
+the geometry
+of a branch requires
+$\textit{fork col} + \textit{forkoff} < \textit{start col} \le
+\textit{end col} \le \textit{merge col} - 1$.
+Second, when several branches leave or enter the same baseline on the same
+side, the branch on the farther lane must be given the smaller
+\texttt{forkoff} or \texttt{mergeoff}, so that the corners nest
+(\cref{sec:notation}). For a figure in a one-column article, the natural width of
+the picture should not much exceed the text width, so that, after
+\texttt{\textbackslash hpbfit\{\dots\}} (which scales down only when
+needed), the smallest text (6.5\,pt) stays above 6\,pt; a
+practical estimate of the natural width is
+$\textit{legend} + 0.35\,\mathrm{cm} + (\textit{last col} + 0.8) \cdot
+\textit{col}$.
+
+\paragraph{Example.}
+\Cref{fig:package-example} shows a complete diagram and its source: a
+product line with a released baseline \texttt{v2.0}, a defect fixed by the
+patch baseline \texttt{v2.0.1}, an improvement targeted at the planned
+baseline \texttt{v2.1}, the NOW marker and the gate of \texttt{v2.1}. The
+diagram needs twelve macro calls, none of which contains a coordinate in
+centimeters.
+

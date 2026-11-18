@@ -1,0 +1,88 @@
+{
+  "name": "@hpb/web",
+  "version": "1.0.0",
+  "description": "HPB Markup for the browser: Mermaid-like auto-render of ```hpb blocks, the <hpb-diagram> custom element and a <script>-tag bundle (window.HPB) for Horizontal Product Branch diagrams.",
+  "license": "MIT",
+  "author": "Achraf Bouchtarouif El Khiat <achrafbouchtarouif@gmail.com>",
+  "homepage": "https://github.com/AchrafBr1/hpb/tree/main/packages/web#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AchrafBr1/hpb.git",
+    "directory": "packages/web"
+  },
+  "bugs": {
+    "url": "https://github.com/AchrafBr1/hpb/issues"
+  },
+  "keywords": [
+    "hpb",
+    "horizontal-product-branch",
+    "diagram",
+    "svg",
+    "web-component",
+    "custom-element",
+    "auto-render",
+    "text-to-diagram"
+  ],
+  "type": "module",
+  "sideEffects": [
+    "./dist/auto.js",
+    "./dist/auto.cjs",
+    "./dist/hpb.min.js"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "unpkg": "./dist/hpb.min.js",
+  "jsdelivr": "./dist/hpb.min.js",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./auto": {
+      "import": {
+        "types": "./dist/auto.d.ts",
+        "default": "./dist/auto.js"
+      },
+      "require": {
+        "types": "./dist/auto.d.cts",
+        "default": "./dist/auto.cjs"
+      }
+    },
+    "./hpb.min.js": "./dist/hpb.min.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsup",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hpb/core": "workspace:^"
+  },
+  "devDependencies": {
+    "@types/node": "20.17.10",
+    "axe-core": "4.10.2",
+    "happy-dom": "15.11.7",
+    "tsup": "8.3.5",
+    "typescript": "5.6.3",
+    "vitest": "2.1.8"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

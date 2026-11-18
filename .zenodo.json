@@ -1,0 +1,32 @@
+{
+  "title": "HPB Markup: text-to-diagram toolkit for Horizontal Product Branch (HPB) diagrams",
+  "upload_type": "software",
+  "version": "1.0.0",
+  "creators": [
+    {
+      "name": "Bouchtarouif El Khiat, Achraf"
+    }
+  ],
+  "description": "<p>HPB Markup is the open-source toolkit of the Horizontal Product Branch (HPB) methodology. It draws HPB diagrams from a few lines of text as accessible SVG, and checks the HPB rules that can be decided from text (R1&ndash;R3 in full, R4 as an open-branch release gate, R5&ndash;R7 in part), with diagnostics by line and column.</p><p>Packages: @hpb/core (parser, rule checks, deterministic layout, SVG renderer), @hpb/web (browser bundle and &lt;hpb-diagram&gt; element), @hpb/react (React component and server renderer), @hpb/cli (hpb render, hpb validate) and remark-hpb (remark/unified and markdown-it plugins). The repository also contains the LaTeX notation package hpb.sty.</p><p>The methodology is described in the paper <em>Horizontal Product Branch (HPB): A Practitioner's Methodology for Planning and Tracing Product Evolution across Hardware, Firmware and Software</em>, DOI 10.5281/zenodo.24355435.</p>",
+  "license": "MIT",
+  "keywords": [
+    "HPB",
+    "Horizontal Product Branch",
+    "product management",
+    "release planning",
+    "traceability",
+    "branch-and-merge",
+    "diagrams as code",
+    "text-to-diagram",
+    "SVG",
+    "visual notation"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "10.5281/zenodo.24355435",
+      "relation": "isSupplementTo",
+      "resource_type": "publication-preprint",
+      "scheme": "doi"
+    }
+  ]
+}

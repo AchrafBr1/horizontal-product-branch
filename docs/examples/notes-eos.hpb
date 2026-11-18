@@ -1,0 +1,7 @@
+hpb "Notes and end of support"
+line A "Product A"
+release v1.0 @2026-01
+issue X-9 "Relay chatter"
+release v1.0.1 @2026-02 merges X-9
+note v1.0.1 "Hotfix shipped to 1,200 units"
+eos A @2026-06

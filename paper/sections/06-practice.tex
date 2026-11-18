@@ -1,0 +1,315 @@
+% ---------------------------------------------------------------------
+%  06-practice.tex -- HPB in practice: canonical situations
+%  Every condition figure is \input exactly once, next to its narrative.
+%  Each situation follows the same pattern:
+%    situation -> how HPB draws it -> decision it supports.
+% ---------------------------------------------------------------------
+\section{HPB in Practice: Canonical Situations}
+\label{sec:practice}
+
+A notation only becomes a shared language when the situations that keep
+coming back are always drawn the same way. Running a portfolio of
+hardware, firmware and software products, I found that a small number of
+situations account for almost every planning and traceability question I
+had to answer. This section walks through nine of them. Together they
+exercise every rule R1--R7.
+
+Each situation is told in three short steps: \emph{the situation} as a
+product manager meets it, \emph{how HPB draws it}, and \emph{the decision}
+the diagram supports. All products, items and dates are fictitious and
+illustrative, and each figure stands on its own. Time runs left to right
+in \emph{events}, not days (\cref{sec:notation-time}).
+\Cref{tab:conditions} is the map of the section.
+
+Read every diagram in the same order: the main line from left to right,
+then above it (how the product gets better), then below it (what is wrong
+and how it gets fixed), then the NOW marker, right of which everything is
+plan. With several lines or streams, do this once per band. Then ask of
+any branch the three questions HPB exists to answer: \emph{Where did it
+start? What else was open at the same time? Which version closed it, or
+why was it dropped?}
+
+\begin{table}[t]
+  \centering
+  \small
+  \caption{The nine canonical situations and the decision each diagram
+    supports. All examples are illustrative.}
+  \label{tab:conditions}
+  \renewcommand{\arraystretch}{1.1}
+  \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{3.6cm}
+      >{\centering\arraybackslash}p{0.7cm}
+      >{\raggedright\arraybackslash}X
+      >{\raggedright\arraybackslash}p{1.2cm}@{}}
+    \toprule
+    \textbf{Situation} & \textbf{Fig.} & \textbf{Decision supported}
+      & \textbf{Rules} \\
+    \midrule
+    A. Firmware or software line
+      & \ref{fig:software-line}
+      & Which version contains a change; in which version a defect was
+        seen; release notes per version.
+      & R1--R3 \\
+    B. Release gate
+      & \ref{fig:release-gate}
+      & Can the planned version ship? Release, slip or descope.
+      & R4 \\
+    C. Hardware revision, new reference
+      & \ref{fig:hardware-fork}
+      & What goes into the new reference; how long the old one is
+        maintained; which fixes must be carried over.
+      & R5, R3 \\
+    D. Discard and re-target
+      & \ref{fig:discard}
+      & Dropping work explicitly; moving a commitment without losing its
+        history.
+      & R2, R7 \\
+    E. Many branches at once
+      & \ref{fig:scale}
+      & Which long-lived open work needs a decision; how much is in
+        flight per type.
+      & R6 \\
+    F. Kanban board versus HPB
+      & \ref{fig:same-data}
+      & What a team board can and cannot tell you about the product.
+      & R1, R2 \\
+    G. Maintained versions, back-port
+      & \ref{fig:backport}
+      & Which maintained versions contain a fix; which fixes still have to
+        be ported.
+      & R2, R3 \\
+    H. Field return (RMA)
+      & \ref{fig:rma}
+      & How a field failure was solved without a new design; whether the
+        action worked; supplier-driven change.
+      & R2, R7 \\
+    I. Shared firmware, joint launch
+      & \ref{fig:shared}
+      & Which configurations a defect affects; whether a coordinated
+        launch can go ahead.
+      & R4, R1 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+% =====================================================================
+\subsection{A. A firmware or software line}
+\label{sec:cond-software}
+
+\input{figures/software-line}
+
+\paragraph{Situation.}
+One line, released in successive versions, with improvements, defects and
+tasks running in parallel. A customer reports a boot loop: is it fixed, and
+since when? Sales asks what went into \texttt{v1.1}. A backlog knows the
+items, not the versions around them.
+
+\paragraph{In HPB.}
+\Cref{fig:software-line} is pure history: four releases of
+\emph{Product~A}, no NOW marker. I-21 forks from \texttt{v1.0} and merges
+into \texttt{v1.1}; its path passes over the patch \texttt{v1.0.1}, so the
+patch visibly does not contain it. X-101 \emph{Boot loop} is seen in
+\texttt{v1.0} and closed by the hotfix \texttt{v1.0.1}. T-8 stays open
+across \texttt{v1.1} and closes with \texttt{v1.2}.
+
+\paragraph{Decision.}
+Every history question is one path. The boot loop is fixed in
+\texttt{v1.0.1} and in everything to its right. Release notes are the
+rises into each version; escaped defects are the drops below it. R1--R3
+can be checked by eye.
+
+% =====================================================================
+\subsection{B. Planning with a release gate}
+\label{sec:cond-gate}
+
+\input{figures/release-gate}
+
+\paragraph{Situation.}
+Three things are promised for a release; two are not finished. Too often
+this is discovered in release week, and the choice to ship, slip or cut is
+made in a corridor and never written down.
+
+\paragraph{In HPB.}
+In \cref{fig:release-gate}, three open branches are targeted at the
+planned \texttt{v2.1}: each stops at NOW and continues as a dashed line
+into the shaded gate. Only X-212 carries a passed test on a release
+candidate. X-213 is open with no target; its path just ends at NOW.
+
+\paragraph{Decision.}
+The diagram \emph{is} the agenda of the gate review. By \cref{rule:gate},
+\texttt{v2.1} cannot ship while I-50 and X-211 are unverified; each one is
+verified, moved to \texttt{v2.2} or discarded with a reason, and the
+outcome (release, slip or descope) is recorded. X-213 goes to triage
+before it becomes an eternal branch.
+
+% =====================================================================
+\subsection{C. A hardware revision that creates a new reference}
+\label{sec:cond-hardware}
+
+\input{figures/hardware-fork}
+
+\paragraph{Situation.}
+A hardware change fails the interchangeability test, so manufacturing
+needs a new reference. From then on there are two physical products in
+the field and every question doubles. This is where the methods of
+\cref{sec:gaps} leave the widest gap.
+
+\paragraph{In HPB.}
+In \cref{fig:hardware-fork}, the lab branch L-5 (one failed and one passed
+test) and the improvement I-30 merge into the hardware diamond
+\emph{Rev~B}. Rev~B starts a child line in its own band, linked to the
+parent after \texttt{v1.3}. New work lives on the child; the parent passes
+end of sale, ships the fix for X-118 in \texttt{v1.4.1} and ends with the
+\textsf{EoS} bar.
+
+\paragraph{Decision.}
+What the new reference contains (L-5 and I-30, backed by the passed test),
+how long the old one lives (its milestones and the work still forking
+from it), and which fixes must be carried over: the fix for X-118 is
+\emph{not} in Rev~B, so its status there must be recorded, and ported if
+needed (situation~G).
+
+% =====================================================================
+\subsection{D. Discarded work and re-targeting}
+\label{sec:cond-discard}
+
+\input{figures/discard}
+
+\paragraph{Situation.}
+A feature turns out too expensive, two reports describe the same defect,
+an issue is pushed to the next release. In list tools all three end as
+``closed'' or as an edited date, and six months later nobody knows why.
+
+\paragraph{In HPB.}
+In \cref{fig:discard}, I-60 is discarded: its path turns gray, never
+returns to the line and carries the reason \emph{not viable (unit cost)}.
+X-57 is discarded as \emph{duplicate of X-52}. X-63 was targeted at
+\texttt{v3.1} and moved to \texttt{v3.2}; the old target remains as a
+faded rise.
+
+\paragraph{Decision.}
+Decisions \emph{not} to deliver are records, not deletions
+(\cref{rule:closure,rule:discussion}). Discards can be counted by reason,
+and the faded rise shows which commitment moved, which is what an honest
+gate-slip report needs (\cref{tab:metrics}).
+
+% =====================================================================
+\subsection{E. Many branches at once}
+\label{sec:cond-scale}
+
+\input{figures/scale}
+
+\paragraph{Situation.}
+A mature product with years of history and many open branches. Draw
+everything and the diagram becomes wallpaper. In a fast-rotating
+portfolio this is the normal case.
+
+\paragraph{In HPB.}
+Two devices keep \cref{fig:scale} readable. Old releases are collapsed
+into count badges, and lanes are reused: each type gets as many lanes as
+it has branches open at the same time, stacked outward. Long-lived open
+branches take the outer lanes, so newer forks reach the inner ones without
+crossing them.
+
+\paragraph{Decision.}
+Which open work needs attention. Because time is counted in events, the
+length of an open path shows how many releases it has outlived: T-14 has
+survived four and goes on the next triage agenda. The lanes occupied at
+NOW are the work in progress per type.
+
+% =====================================================================
+\subsection{F. The same items on a board and in HPB}
+\label{sec:cond-board}
+
+\input{figures/same-data}
+
+\paragraph{Situation.}
+Most teams already have a board, and they are right to. The first
+question I am asked is: why do I need anything else?
+
+\paragraph{In HPB.}
+\Cref{fig:same-data} shows the same six items twice: on a three-column
+Kanban board~\citep{anderson2010kanban} and as an HPB diagram. On the
+board, X-31, I-12 and T-7 are all \emph{Done}. In HPB, X-31 and I-12 merge
+into \texttt{v1.1} while T-7 was discarded; X-35 and I-14 are committed to
+\texttt{v1.2}, and L-3 to nothing.
+
+\paragraph{Decision.}
+The board answers a team question, \emph{in which workflow state is each
+item?}, and answers it well. HPB answers the product questions: what was
+delivered and in which version, what is committed to the next gate, and
+which hardware reference the work belongs to. Both views can be driven by
+the same tracker items (\cref{subsec:method-coexistence}).
+
+% =====================================================================
+\subsection{G. Maintained versions and back-ports}
+\label{sec:cond-backport}
+
+\input{figures/backport}
+
+\paragraph{Situation.}
+Some customers cannot move to the new major version, so the old one is
+maintained in parallel. Every fix now raises a second question: does it
+also have to go into the old version, and did anyone do it?
+
+\paragraph{In HPB.}
+In \cref{fig:backport}, a 1.x maintenance stream leaves \texttt{v1.4} in
+its own band. Its patch \texttt{v1.4.1} ships after \texttt{v2.0}, but
+precedence follows streams, not dates: no path connects them. X-305 is
+fixed in \texttt{v2.0.1}; since 1.x is affected too, X-306 is opened on
+the stream as a port, linked to X-305 by a propagation connector.
+
+\paragraph{Decision.}
+Which maintained versions contain a fix (follow the rises and the stream)
+and which fixes have not been ported yet (merged issues known to affect
+another stream, with no port and no recorded decision). The cost of
+keeping 1.x alive is the work that forks from it.
+
+% =====================================================================
+\subsection{H. From field return to corrective action}
+\label{sec:cond-rma}
+
+\input{figures/rma}
+
+\paragraph{Situation.}
+Units come back from the field. Some failures are fixed by changing how
+the product is built, not what it is; some are not product problems at
+all. Quality wants to know what was done, on which evidence, and whether
+it worked.
+
+\paragraph{In HPB.}
+In \cref{fig:rma}, X-150 \emph{Relay failure} carries the failure analysis
+and the verification on a pilot lot as steps, and merges into the process
+baseline PC-7 (a square). A dotted continuation records that the action
+was effective. X-152 closes as \emph{resolved without a product baseline}
+(transport damage, stock reworked). A supplier end-of-life notice opens
+the lab branch L-9, targeted at an interchangeable hardware baseline.
+
+\paragraph{Decision.}
+The corrective-action loop is recorded without inventing product
+versions. Containment is its own closure class and does not inflate the
+abandoned-work ratio; effectiveness is a step after closure.
+
+% =====================================================================
+\subsection{I. Shared firmware and a joint launch}
+\label{sec:cond-shared}
+
+\input{figures/shared}
+
+\paragraph{Situation.}
+One firmware build runs on several hardware references, and a new feature
+needs both a firmware release and a hardware change. A report says
+``relay chatter'', but the real question is: on which combinations?
+
+\paragraph{In HPB.}
+In \cref{fig:shared}, the firmware is a line of its own between the
+hardware lines Rev~A and Rev~B, and each firmware version declares the
+hardware it applies to. X-140 is drawn on the firmware line with its
+observed configuration (Rev~A, \texttt{v2.0}). I-77 depends on the
+hardware baseline B.2, so \texttt{v2.1} and B.2 form the launch bundle
+K-1.
+
+\paragraph{Decision.}
+Who is affected (the applies-to sets and the observed configuration) and
+whether the launch can go ahead: by \cref{rule:gate}, K-1 ships only when
+everything targeted at either baseline is verified. A slip of B.2 visibly
+delays \texttt{v2.1}, unless I-77 is moved out.

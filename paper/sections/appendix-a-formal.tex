@@ -1,0 +1,827 @@
+% ---------------------------------------------------------------------
+%  appendix-a-formal.tex -- the formal HPB model
+%  Single place where Definitions, Rules R1--R7 (labels rule:*) and
+%  Properties P1--P4 (labels prop:*) are stated. The main text
+%  (sections 03, 04, 05) explains them in plain language.
+% ---------------------------------------------------------------------
+\section{Formal Model}
+\label{app:formal}
+
+This appendix states HPB precisely, for readers who want to check the
+method or build a tool that enforces it. \Cref{sec:model} explains the same
+concepts in plain language; the rules R1--R7 are introduced, with their
+practical motivation, in \cref{sec:onepage}. The last three subsections
+give the exact definitions of the metrics, the layout algorithm, and the
+data model and status of the prototype. Time is taken from a totally
+ordered domain $\mathbb{T}$ (calendar time); how time is \emph{drawn} is a
+separate matter (\cref{sec:notation,def:ordinal}). Concepts that only some
+organizations need (configurations, dependencies, launch bundles and the
+deployment overlay) can be left out without affecting the rest of the
+model.
+
+\subsection{Lines and baselines}
+\label{app:formal-lines}
+
+\begin{definition}[Product line, line forest]
+  \label{def:line}
+  A \emph{product line} $P$ is an identified product reference, such as a
+  model together with its manufacturer reference, or a firmware or
+  software product. A portfolio has a finite set of lines $\mathcal{P}$
+  and a partial function
+  $\mathrm{parent}\colon \mathcal{P} \rightharpoonup \mathcal{P}$, where
+  $\mathrm{parent}(P') = P$ states that $P'$ was created by a hardware
+  revision of $P$ (\cref{def:linefork}). The graph with an edge from
+  $\mathrm{parent}(P')$ to $P'$ is a forest, the \emph{line forest}.
+\end{definition}
+
+\begin{definition}[Baseline]
+  \label{def:baseline}
+  A \emph{baseline} $v$ is a named, identifiable state of a product line
+  $\ell(v) \in \mathcal{P}$. It carries a name, unique within its line
+  (e.g., \texttt{v2.3.1} or \texttt{Rev~B}), a kind $k(v)$, one of
+  \textsf{firmware}, \textsf{software}, \textsf{hardware} or
+  \textsf{other}, a status $s(v)$, either \textsf{planned} or
+  \textsf{released}, and a date $t(v) \in \mathbb{T}$, which is the
+  release date if $v$ is released and the target date if it is planned.
+  We write $\mathcal{V}$ for the set of all baselines and
+  $\mathcal{V}(P) = \{v \in \mathcal{V} : \ell(v) = P\}$. A status may
+  change only from \textsf{planned} to \textsf{released}; once released,
+  a baseline is immutable.
+\end{definition}
+
+The kind \textsf{other} is used for process baselines. The normative
+release event per kind, and the form--fit--function criterion that decides
+whether a hardware change is a baseline of an existing line or a line
+fork, are given in \cref{sec:model-lines}.
+
+\begin{definition}[Release stream, main line, precedence]
+  \label{def:mainline}
+  The baselines of a line $P$ are partitioned into one or more
+  \emph{release streams}. The \emph{main stream} starts at the
+  \emph{first baseline} $v_0(P)$ of $P$, i.e., its first release or, for a
+  line created by a line fork, the hardware baseline that created it
+  (\cref{def:linefork}). Every other stream $R$, a \emph{maintenance
+  stream}, is created at a released \emph{stream-fork baseline}
+  $\beta(R)$ of another stream of $P$. Within a stream, released baselines
+  are ordered by date and followed by the planned baselines of the stream,
+  ordered by target date; the sequence of the main stream,
+  \[
+    M(P) = (v_0, v_1, \dots, v_n, u_1, \dots, u_r),
+  \]
+  is the \emph{main line} of $P$. \emph{Precedence} $\prec$ is the smallest
+  transitive relation on $\mathcal{V}$ such that $x \prec y$ whenever
+  (i)~$y$ immediately follows $x$ in a stream, (ii)~$y$ is the first
+  baseline of a maintenance stream $R$ and $x = \beta(R)$, or (iii)~$y$ is
+  the first baseline of a child line $P'$ and $x = \delta(P')$, the
+  baseline of the parent line from which $P'$ was derived
+  (\cref{def:linefork}). We write $\preceq$ for its reflexive closure.
+\end{definition}
+
+By construction every baseline has at most one immediate predecessor: its
+predecessor in its stream, the fork baseline of its stream, or the parent
+baseline of its line. Precedence is therefore a forest order, and in
+particular a strict partial order. Release dates order baselines only
+within a stream.
+
+\begin{definition}[Applies-to relation, configuration]
+  \label{def:config}
+  A line is a \emph{hardware} line if its reference is a physical unit and
+  a \emph{software} line if it is a firmware, application or service
+  product; a \emph{combined} line carries the hardware revisions of one
+  reference together with the firmware released for it. For every
+  baseline $v$ of a software line, the \emph{applies-to} set
+  $\mathrm{app}(v) \subseteq \mathcal{P}$ lists the hardware references on
+  which $v$ is released to run (its effectivity). A \emph{configuration}
+  $\kappa$ is a set of baselines with at most one baseline per line in
+  which every software baseline applies to the hardware reference of
+  $\kappa$; for example (\texttt{Rev~A}, firmware \texttt{v2.0}, app
+  \texttt{5.1}). The relation $\mathrm{app}$ is the compatibility matrix
+  of the portfolio.
+\end{definition}
+
+\subsection{Branches, states and closure}
+\label{app:formal-branches}
+
+\begin{definition}[Branch]
+  \label{def:branch}
+  A \emph{branch} $b$ is a unit of change intent on a product. We write
+  $\mathcal{B}$ for the set of all branches. Every branch has
+  \begin{itemize}[leftmargin=1.5em,itemsep=1pt,topsep=2pt]
+    \item a \emph{type} $\tau(b) \in \{\mathsf{I}, \mathsf{X}, \mathsf{T},
+          \mathsf{L}\}$: improvement, issue (defect), task, or laboratory
+          evolution;
+    \item an \emph{opening time} $t_o(b) \in \mathbb{T}$, the time at which
+          the request is accepted at triage;
+    \item a \emph{fork baseline} $f(b) \in \mathcal{V}$ with
+          $s(f(b)) = \textsf{released}$ and $t(f(b)) \le t_o(b)$, fixed at
+          intake: for an issue, the baseline in which the defect was
+          \emph{observed}, as reported; for other types, the baseline
+          relative to which the change is specified, by default the latest
+          released baseline of the main stream at $t_o(b)$;
+    \item for an issue, optionally, the \emph{observed configuration}
+          $\Phi(b) \ni f(b)$ when the defect was reported for a combination
+          of baselines of several lines; $f(b)$ is then its \emph{primary}
+          element, on whose line the branch is drawn and attributed;
+    \item for an issue, two attributes set by later analysis: the set
+          $\mathrm{aff}(b) \subseteq \mathcal{V}$ of further baselines in
+          which the defect is confirmed (\emph{also affects}) and, when root
+          cause is known, the baseline $\iota(b)$ that \emph{introduced} it;
+    \item a finite, time-ordered sequence of \emph{steps}
+          $S(b) = \big((t_1, \kappa_1, e_1), \dots, (t_q, \kappa_q, e_q)\big)$
+          with $t_o(b) \le t_1$, kinds
+          $\kappa_i \in \{\textsf{done}, \textsf{todo}, \textsf{pass},
+          \textsf{fail}\}$ and optional evidence $e_i$ (a report, a
+          measurement, the identifier of a build).
+  \end{itemize}
+\end{definition}
+
+The fork baseline is never revised by later knowledge: confirmation in
+other baselines extends $\mathrm{aff}(b)$ and root-cause analysis sets
+$\iota(b)$. An error in $f(b)$ itself is corrected only through an audited
+transition, and an inferred fork baseline is flagged as such.
+
+\begin{definition}[Branch state, verification]
+  \label{def:state}
+  The \emph{state} of a branch is a function
+  $\sigma\colon \mathcal{B} \times \mathbb{T} \to \{\textsf{open},
+  \textsf{targeted}, \textsf{merged}, \textsf{discarded}\}$, defined for
+  $t \ge t_o(b)$. A \emph{targeted} branch is open and committed to a
+  \emph{target baseline} $g(b)$, which must be planned when the target is
+  set. States change only through the transitions of \cref{fig:lifecycle}:
+  \emph{target} and \emph{re-target} (set or change $g(b)$),
+  \emph{un-target} (clear $g(b)$), \emph{merge}, \emph{discard} and, as an
+  exceptional and audited operation, \emph{reopen}. The states
+  \textsf{merged} and \textsf{discarded} are \emph{terminal}; the time of
+  the most recent terminal transition is the \emph{closing time} $t_c(b)$,
+  and $t_c(b) = \infty$ while $b$ is open or targeted. A targeted branch is
+  \emph{verified} at time $t$ if $S(b)$ contains a \textsf{pass} step at a
+  time $\le t$ whose evidence identifies a candidate of $g(b)$ (a release
+  candidate build, a prototype or a pilot lot); the time of the latest such
+  step is its \emph{verification time} $t_r(b)$.
+\end{definition}
+
+\begin{definition}[Merge and discard]
+  \label{def:merge}
+  \emph{Merging} a targeted branch $b$ sets its \emph{merge baseline}
+  $m(b) = g(b)$ and establishes the relation $\mathrm{closes}(b, m(b))$:
+  baseline $m(b)$ contains the resolution of $b$. Merges happen only when
+  $m(b)$ is published (\cref{def:gate}), so $t_c(b) = t(m(b))$ for every
+  merged branch. \emph{Discarding} a branch closes it without a baseline
+  and records a non-empty \emph{rationale} $\rho(b)$ from one of two
+  classes: \emph{abandoned} (not viable, duplicate of $b'$, cannot
+  reproduce, superseded, out of scope, will not fix) or \emph{resolved
+  without a product baseline} (already resolved in $v$, contained without
+  design change, resolved by the supplier).
+\end{definition}
+
+\subsection{Line forks, life cycle, gates and relations}
+\label{app:formal-forks}
+
+\begin{definition}[Line fork]
+  \label{def:linefork}
+  A \emph{line fork} is a baseline $h$ with $k(h) = \textsf{hardware}$ that
+  creates a new product reference $P'$, with $\mathrm{parent}(P') = P$.
+  The baseline $h$ belongs to the child line, $\ell(h) = P'$, and is its
+  first baseline, $v_0(P') = h$. The \emph{derived-from baseline}
+  $\delta(P') \in \mathcal{V}(P)$ is the latest released baseline of the
+  main stream of $P$ before $t(h)$; it is the only immediate predecessor of
+  $h$ (\cref{def:mainline}).
+\end{definition}
+
+Branches that produce the new reference fork from baselines of $P$ and
+merge into $h$, which is admitted by the precedence edge
+$\delta(P') \prec h$. Because $h$ is not a baseline of the parent line,
+later baselines of $P$ do not contain that work.
+
+\begin{definition}[Line life cycle]
+  \label{def:lifecycle}
+  Every line $P$ has a sequence of dated \emph{milestones}
+  \[
+    t_{\mathrm{sale}}(P) \le t_{\mathrm{prod}}(P) \le t_{\mathrm{sec}}(P)
+    \le t_{\mathrm{eos}}(P)
+  \]
+  (end of sale, end of production, start of security-only maintenance,
+  end of service), each possibly undefined while it has not been decided.
+  They divide the life of the line into the phases \emph{active},
+  \emph{no longer sold}, \emph{no longer produced}, \emph{security only}
+  and \emph{retired}. \Cref{tab:phases} states which branches may fork from
+  the baselines of a line, and which baselines it may receive, in each
+  phase.
+\end{definition}
+
+\begin{table}[tbp]
+  \centering
+  \small
+  \caption{What a line still accepts in each phase of its life
+    (\cref{def:lifecycle}). These are defaults: an organization may
+    tighten them; relaxing them is an explicit decision recorded on the
+    line.}
+  \label{tab:phases}
+  \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{3.2cm}
+      >{\raggedright\arraybackslash}X
+      >{\raggedright\arraybackslash}X@{}}
+    \toprule
+    \textbf{Phase (from milestone)} & \textbf{Branches that may fork}
+      & \textbf{Baselines that may be added} \\
+    \midrule
+    Active & $\mathsf{I}$, $\mathsf{L}$, $\mathsf{X}$, $\mathsf{T}$
+      & all kinds \\
+    No longer sold (end of sale)
+      & $\mathsf{X}$, $\mathsf{T}$; $\mathsf{I}$ only for recorded customer
+        commitments; $\mathsf{L}$ only for supplier-driven changes
+      & firmware and software; hardware and process only for
+        supplier-driven changes \\
+    No longer produced (end of production)
+      & $\mathsf{X}$, $\mathsf{T}$
+      & firmware and software, preferably on a maintenance stream \\
+    Security only
+      & $\mathsf{X}$ with the security attribute
+      & security patches \\
+    Retired (end of service) & none & none \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{definition}[Gate, publication]
+  \label{def:gate}
+  Every planned baseline $g$ acts as a \emph{gate}. Its \emph{targeted
+  set} at time $t$ is
+  \[
+    \mathcal{B}_t(g) = \{\, b \in \mathcal{B} : \sigma(b,t) =
+    \textsf{targeted} \ \wedge\ g(b) = g \,\},
+  \]
+  written $\mathcal{B}(g)$ when the time is clear from context.
+  \emph{Publishing} $g$ at time $t$ is an atomic operation that sets
+  $s(g) = \textsf{released}$ and $t(g) = t$ and merges every branch of
+  $\mathcal{B}_t(g)$ into $g$. Before publication, every member of
+  $\mathcal{B}_t(g)$ must be verified (\cref{def:state}); members that are
+  not are re-targeted to another planned baseline or discarded first
+  (\cref{rule:gate}).
+\end{definition}
+
+\begin{definition}[Dependency, propagation, launch bundle]
+  \label{def:relations}
+  The \emph{dependency} relation
+  $\mathrm{dep} \subseteq \mathcal{B} \times (\mathcal{B} \cup
+  \mathcal{V})$ states that a branch can be delivered only together with
+  or after another branch, or only once a baseline (possibly of another
+  line) is released. The \emph{propagation} relation
+  $\mathrm{prop} \subseteq \mathcal{B} \times \mathcal{B}$ states that
+  $b'$ carries the change of $b$ to another stream or line (a back-port or
+  forward-port); then $\tau(b') = \tau(b)$. A \emph{launch bundle} is a set
+  $\mathcal{G}$ of planned baselines of distinct lines that are published
+  together, in one atomic operation, or not at all.
+\end{definition}
+
+\begin{definition}[Deployment overlay]
+  \label{def:deployment}
+  An HPB model may carry an optional \emph{deployment overlay}: for every
+  released baseline $v$ and time $t$, a \emph{rollout status}
+  $\mathrm{ro}(v,t) \in \{\textsf{pilot}, \textsf{staged}, \textsf{general}\}$
+  with, for staged rollouts, the share of the fleet reached; an
+  \emph{installed base} $N(v,t) \in \mathbb{N}$ (units or installations
+  running $v$); for each customer $c$ of a finite set $\mathcal{K}$, its
+  deployed configuration $d(c,t)$; and, for branches, \emph{commitments}
+  $\mathrm{cm}(b) \subseteq \mathcal{K} \times (\mathcal{V} \cup
+  \mathbb{T})$, i.e., the customers to which $b$ was promised and the
+  baseline or date promised.
+\end{definition}
+
+For an issue $b$, let $\mathrm{Aff}(b) = \{f(b)\} \cup \mathrm{aff}(b)$
+be the baselines in which it is known to occur. The customers exposed to
+$b$ at time $t$ are
+\[
+  \mathcal{K}(b,t) = \{\, c \in \mathcal{K} :
+  d(c,t) \cap \mathrm{Aff}(b) \neq \emptyset \,\}.
+\]
+Customers who have not upgraded to a baseline that contains a fix, and
+commitments whose promised baseline has slipped, are obtained in the same
+way.
+
+\begin{definition}[HPB model and graph]
+  \label{def:model}
+  An \emph{HPB model} is a structure
+  \[
+    H = (\mathcal{P}, \mathrm{parent}, \mathcal{V}, \ell, k, s, t, \beta,
+    \delta, \mathrm{app}, \mathcal{B}, \tau, t_o, f, \Phi, \mathrm{aff},
+    \iota, S, \sigma, g, m, \rho, \mathrm{dep}, \mathrm{prop},
+    \mathbb{G}, A, \alpha),
+  \]
+  where $\beta$ also determines the streams of every line, $\mathbb{G}$ is
+  the set of launch bundles, $A$ is a set of annotations (comments,
+  decisions, evidence and approvals) and
+  $\alpha\colon A \to \mathcal{P} \cup \mathcal{V} \cup \mathcal{B}$
+  attaches each annotation to a node. The relation $\mathrm{closes}$ is
+  derived from $m$, and the deployment overlay, when present, is attached
+  to $H$. Its \emph{graph} has the baselines and branches as nodes and
+  three kinds of structural edges: \emph{precedence} edges between
+  immediately preceding baselines (\cref{def:mainline}), \emph{fork} edges
+  $f(b) \to b$ and \emph{merge} edges $b \to m(b)$. Dependencies and
+  propagations are drawn as annotation edges.
+\end{definition}
+
+\subsection{Well-formedness rules}
+\label{sec:model-rules}
+
+An HPB model is \emph{well formed} if it satisfies the following rules at
+all times. Each rule is followed by the failure it prevents.
+
+\begin{hpbrule}[Single origin]
+  \label{rule:origin}
+  Every branch has exactly one fork baseline $f(b)$, which is released,
+  satisfies $t(f(b)) \le t_o(b)$, is fixed at intake, and is changed only
+  by an audited correction.
+\end{hpbrule}
+\noindent Without a unique origin, ``relative to which product state?''
+has no answer and defects cannot be attributed to versions
+(\cref{prop:escaped}). Later confirmations extend $\mathrm{aff}(b)$; they
+do not create additional forks.
+
+\begin{hpbrule}[Explicit closure]
+  \label{rule:closure}
+  Every closed branch has exactly one terminal: either a merge into exactly
+  one baseline $m(b)$, or a discard with a non-empty rationale $\rho(b)$.
+  No branch is closed silently.
+\end{hpbrule}
+\noindent ``Closed'' without a closing version or a reason is the most
+common loss of traceability in practice. A change that must reach several
+streams or lines is modeled as one branch per target, linked by
+$\mathrm{prop}$, so that a missing propagation is detectable
+(\cref{sec:operating}).
+
+\begin{hpbrule}[Time moves forward]
+  \label{rule:time}
+  For every merged branch, $f(b) \prec m(b)$ and $t(m(b)) \ge t_o(b)$.
+\end{hpbrule}
+\noindent A baseline cannot contain work requested after it was fixed, and
+a branch cannot be resolved by a state that precedes its origin. Since
+$\prec$ follows streams and the line forest, merges are confined to
+successors of the fork: later baselines of the same stream, of streams
+forked after it, or of descendant lines. A defect already resolved in an
+existing baseline is discarded with rationale \emph{already resolved in
+$v$}, so that change logs only contain work actually incorporated.
+
+\begin{hpbrule}[Gate integrity]
+  \label{rule:gate}
+  A planned baseline $g$ may be published at time $t$ only if every
+  $b \in \mathcal{B}_t(g)$ is verified at $t$, and every baseline or branch
+  on which a member depends is released, respectively merged, at $t$ or is
+  published or merged in the same operation. If $g$ belongs to a launch
+  bundle $\mathcal{G}$, the condition applies to the union of the targeted
+  sets of $\mathcal{G}$, and all baselines of $\mathcal{G}$ are published
+  together.
+\end{hpbrule}
+\noindent Every planned baseline becomes a decision point in the sense of
+Stage-Gate~\citep{cooper1990stagegate}, applied to releases rather than
+projects: committed work is delivered and verified, explicitly deferred or
+explicitly abandoned, never left pending behind a shipped version and
+never shipped ahead of what it depends on. The rule has content because
+publication is the only way to merge; it is checked against the targeted
+set \emph{before} publication.
+
+\begin{hpbrule}[Lineage and life cycle]
+  \label{rule:lineage}
+  A hardware change that fails the interchangeability test creates a new
+  line with an explicit parent link (\cref{def:linefork}); release streams
+  of any kind do not. References are never edited in place, and parent
+  links are never changed once created. New branches and baselines respect
+  the life-cycle phase of their line (\cref{tab:phases}).
+\end{hpbrule}
+\noindent Editing a reference in place would rewrite the history of units
+already in the field; the explicit link preserves the ancestry needed for
+maintenance and audit (\cref{prop:lineage}), and the phase table keeps a
+retired reference from silently accumulating work.
+
+\begin{hpbrule}[Typed work]
+  \label{rule:typed}
+  Every branch has exactly one type $\tau(b)$. Sub-tasks are steps of the
+  branch they belong to and are not branches.
+\end{hpbrule}
+\noindent Types determine lanes, colors and metrics; a branch with two
+types, or a sub-task counted next to its parent, would be counted twice.
+Task hierarchies belong to team boards, not to a product-level view.
+
+\begin{hpbrule}[Traceable discussion]
+  \label{rule:discussion}
+  Every annotation in $A$ is attached by $\alpha$ to exactly one node of the
+  model: a line, a baseline or a branch. Annotations and transitions are
+  append-only.
+\end{hpbrule}
+\noindent Decisions and evidence that float in chat threads or meeting
+notes cannot be audited; anchoring them to the node they concern puts the
+rationale where the diagram is read, and append-only keeps the record
+trustworthy.
+
+\begin{remark}
+  \label{rem:dag}
+  The graph of a well-formed model is acyclic. Precedence edges follow
+  $\prec$, which is a forest order; a fork edge followed by a merge edge
+  goes from $f(b)$ to $m(b)$ with $f(b) \prec m(b)$ by \cref{rule:time};
+  and no edge enters a branch except its fork edge, since sub-tasks are
+  steps (\cref{rule:typed}). HPB thus keeps the structural property that
+  makes version-control histories readable: every path runs forward in
+  precedence. The relation $\mathrm{dep}$ must itself be acyclic, since a
+  cycle of dependencies could never be released under \cref{rule:gate}.
+\end{remark}
+
+\subsection{Derived properties}
+\label{sec:model-properties}
+
+The rules are chosen so that release notes, quality attribution, flow
+figures and audit answers are \emph{functions} of the graph rather than
+separate records maintained by hand.
+
+\begin{property}[Change log]
+  \label{prop:changelog}
+  For every baseline $v$, the set
+  $C(v) = \{\, b \in \mathcal{B} : \mathrm{closes}(b, v) \,\}$ is the
+  content of $v$. The non-empty sets among $\{C(v)\}_{v \in \mathcal{V}}$
+  partition the set of merged branches, and $C(v)$ does not change after
+  $v$ is released except through audited reopen transitions.
+\end{property}
+\begin{proof}[Proof sketch]
+  By \cref{rule:closure}, each merged branch has exactly one merge baseline,
+  hence belongs to exactly one $C(v)$. Merges happen only at publication
+  (\cref{def:merge,def:gate}), so no ordinary transition adds a branch to
+  $C(v)$ once $v$ is released. Computing all change logs is a single pass
+  over $\mathcal{B}$; grouping $C(v)$ by $\tau$ yields release notes
+  without manual compilation.
+\end{proof}
+
+\begin{property}[Escaped defects]
+  \label{prop:escaped}
+  For every baseline $v$, the set
+  $E(v) = \{\, b \in \mathcal{B} : \tau(b) = \mathsf{X} \ \wedge\ f(b) = v
+  \,\}$ contains the issues observed in $v$. The non-empty sets among
+  $\{E(v)\}_{v \in \mathcal{V}}$ partition the set of issues, and every
+  merged $b \in E(v)$ is resolved in a successor of $v$, i.e.,
+  $v \prec m(b)$.
+\end{property}
+\begin{proof}[Proof sketch]
+  By \cref{rule:origin,rule:typed}, each issue has exactly one type and
+  exactly one fork baseline, hence belongs to exactly one $E(v)$. The
+  second claim is \cref{rule:time} with $f(b) = v$.
+\end{proof}
+\noindent $E(v)$ attributes \emph{observed} quality to versions; the
+baseline $\iota(b)$ in which a defect was \emph{introduced} may be earlier
+and requires root-cause analysis. The property holds only if $f(b)$ is the
+observed baseline, which is why \cref{rule:origin} fixes it at intake and
+why an implementation must store it explicitly (\cref{sec:impl-datamodel};
+HPB Markup stores it through \texttt{from}).
+
+\begin{property}[Work in progress]
+  \label{prop:wip}
+  For every time $t$, the open set
+  $W(t) = \{\, b \in \mathcal{B} : \sigma(b,t) \in \{\textsf{open},
+  \textsf{targeted}\} \,\}$ is well defined and partitions by type into
+  $W_{\mathsf{I}}(t), W_{\mathsf{X}}(t), W_{\mathsf{T}}(t),
+  W_{\mathsf{L}}(t)$. Count every maximal interval during which a branch is
+  open or targeted as one \emph{visit}. If, over a long observation window,
+  the arrival rate $\lambda$ of visits and their mean duration
+  $\overline{LT}$ have finite limits and the number of open branches does
+  not grow without bound, then the time-average of $|W(t)|$ equals
+  $\lambda \cdot \overline{LT}$.
+\end{property}
+\begin{proof}[Proof sketch]
+  $\sigma$ is a total function on the branches opened by time $t$
+  (\cref{def:state}), so $W(t)$ is determined, and \cref{rule:typed} makes
+  the type partition exact. With visits as customers of a queueing system,
+  $|W(t)|$ is the number of customers in the system and the visit length is
+  the sojourn time. Little's law~\citep{little1961} then applies under the
+  stated limit conditions; it requires no assumption on the distribution of
+  arrivals or on the order of service. Merges and discards both count as
+  departures, so discarded work must be included when visit lengths are
+  averaged. (The arrival rate $\lambda$ here is unrelated to the lane map
+  of \cref{eq:lanemap}.)
+\end{proof}
+
+\begin{property}[Lineage]
+  \label{prop:lineage}
+  For every line $P$, the ancestry $P, \mathrm{parent}(P),
+  \mathrm{parent}^2(P), \dots$ is finite and is the unique path from a root
+  of the line forest to $P$. For every baseline $v$, its predecessors
+  $\{u : u \preceq v\}$ form a chain, so that the \emph{cumulative content}
+  $\widehat{C}(v) = \bigcup_{u \preceq v} C(u)$ is well defined and follows
+  the ancestry of $v$ through streams and lines.
+\end{property}
+\begin{proof}[Proof sketch]
+  By \cref{rule:lineage}, each line has at most one parent, assigned when
+  the line is created and never changed afterwards; since a parent must
+  exist before its child, ancestry strictly decreases in creation order,
+  cannot cycle, and terminates at a root of the forest. For the second
+  claim, every baseline has at most one immediate predecessor
+  (\cref{def:mainline}), and $\prec$ is well founded because each
+  immediate predecessor was created earlier; following immediate
+  predecessors from $v$ therefore enumerates $\{u : u \prec v\}$ as a
+  single finite chain.
+\end{proof}
+
+\noindent As a corollary, a fix merged into a baseline of a maintenance
+stream, or into a later baseline of a parent line after a line fork, is
+\emph{not} in $\widehat{C}(w)$ for any baseline $w$ of the main stream or
+of the child line that does not descend from it. By \cref{rule:closure},
+the decision to carry it over is recorded as a second branch linked by
+$\mathrm{prop}$, or as an explicit decision on the first one
+(\cref{fig:backport}).
+
+\subsection{Ordinal layout}
+\label{app:formal-ordinal}
+
+Let $\mathcal{E}_{\le}$ be the finite set of \emph{historical events}
+drawn in a diagram, i.e., those with a time $t(e) \le t_{\mathrm{now}}$:
+released baselines, branch starts, steps and terminals, with times taken
+from the model. For a discarded branch the terminal time is $t_c(b)$. For
+a merged branch it is its verification time $t_r(b)$ (\cref{def:state}),
+which does not exceed $t_c(b) = t(m(b))$: the check mark is drawn when the
+resolution has been verified, and the rise into the baseline shows the
+merge at publication. Let $\mathcal{E}_{>}$ be the planned baselines.
+
+\begin{definition}[Ordinal layout]
+  \label{def:ordinal}
+  An \emph{ordinal layout} assigns a \emph{column} $c(e)$ to every event.
+  The historical events receive the columns $1, \dots, |\mathcal{E}_{\le}|$,
+  injectively and such that $t(e) < t(e')$ implies $c(e) < c(e')$; events
+  with equal times are ordered by a fixed tie-breaking rule (terminals
+  before the baseline that closes them, baselines before all other branch
+  events, then by identifier). The NOW marker receives the next column,
+  $c_{\mathrm{now}} = |\mathcal{E}_{\le}| + 1$, and the planned baselines
+  of $\mathcal{E}_{>}$ follow in order of target date. Spacer columns that
+  carry no event may be inserted (rule~\ref{lay:tags}). Column $j$ is drawn
+  at horizontal position $x = j \cdot w$ for a constant column width $w$.
+  Calendar time is shown only as tick labels on a time axis below the
+  diagram, at the column of the first event of a calendar period, written
+  ``Mon YYYY'' at the first tick and after every change of year.
+\end{definition}
+
+A \emph{linear} layout instead uses $x(e) = (t(e) - t_{\min}) / \Delta$
+for a fixed time scale $\Delta$. It preserves durations but requires
+collision handling for tags and labels and cannot guarantee a minimum
+spacing between events (\cref{sec:notation-time}).
+
+% =====================================================================
+\subsection{Metric definitions}
+\label{app:metrics}
+
+This subsection defines the metrics of \cref{tab:metrics}. $\mathcal{B}$
+is the set of branches of a product line (or of several lines, when
+stated) and $\mathcal{V}$ its set of baselines. Closed branches split into
+merged, $\mathcal{B}^{\mathrm{m}}$, and discarded,
+$\mathcal{B}^{\mathrm{d}}$; $\mathcal{B}_\theta$ is the set of branches of
+type $\theta$. The closing time $t_c(b)$ is the publication time of $m(b)$
+for a merged branch and the time of the discard otherwise
+(\cref{def:state}). Windows are intervals $(t_1,t_2]$ of length
+$\Delta=t_2-t_1$, and a subscript $(t_1,t_2]$ keeps the branches with
+$t_c(b)$ in the window. Lead times are measured per \emph{visit} (each
+period during which a branch is open or targeted).
+
+\paragraph{Flow.}
+\begin{gather}
+  \mathrm{LT}(b) = t_c(b) - t_o(b), \quad b \in \mathcal{B}^{\mathrm{m}} \cup \mathcal{B}^{\mathrm{d}};
+  \label{eq:leadtime}\\
+  \mathrm{Age}(b,t) = t - t_o(b), \quad b \in W(t);
+  \label{eq:age}\\
+  W(t) = \{\, b \in \mathcal{B} : \sigma(b,t) \in \{\textsf{open}, \textsf{targeted}\} \,\},
+  \quad W_\theta(t) = W(t) \cap \mathcal{B}_\theta;
+  \label{eq:wip}\\
+  \mathrm{TH}(t_1,t_2) = \bigl|\{\, b \in \mathcal{B}^{\mathrm{m}} : t_1 < t_c(b) \le t_2 \,\}\bigr| \,/\, \Delta .
+  \label{eq:throughput}
+\end{gather}
+Little's law \citep{little1961} states that, in the long run and provided
+the averages exist,
+\begin{equation}
+  \overline{|W|} = \lambda \cdot \overline{\mathrm{LT}},
+  \label{eq:little}
+\end{equation}
+where $\overline{|W|}$ is the time average of $|W(t)|$, $\lambda$ the rate
+at which visits start (equal, in a stable system, to the rate at which
+they end) and $\overline{\mathrm{LT}}$ the mean lead time per visit. It
+makes no assumption about the distribution of arrivals, but it needs a
+window long enough and no growing population of branches that never close
+(the \emph{eternal branches} of \cref{subsec:method-antipatterns}).
+
+\paragraph{Closure.}
+\begin{gather}
+  \mathrm{MR} = \frac{|\mathcal{B}^{\mathrm{m}}_{(t_1,t_2]}|}
+    {|\mathcal{B}^{\mathrm{m}}_{(t_1,t_2]}| + |\mathcal{B}^{\mathrm{d}}_{(t_1,t_2]}|},
+  \qquad \mathrm{DR} = 1-\mathrm{MR};
+  \label{eq:mergeratio}\\
+  D(b) = \bigl|\{\, v \in \mathcal{V} : s(v)=\textsf{released},\ f(b) \prec v \preceq m(b) \,\}\bigr| ,
+  \label{eq:mergedistance}
+\end{gather}
+where $\prec$ is the precedence of \cref{def:mainline}, crossing the
+lineage connector when a branch merges into a child line. Discards
+\emph{resolved without a product baseline} are reported apart from
+abandoned work.
+
+\paragraph{Releases and quality.}
+\begin{gather}
+  |C(v)| = \bigl|\{\, b : \mathrm{closes}(b,v) \,\}\bigr| ;
+  \label{eq:batch}\\
+  E(v) = \{\, b \in \mathcal{B}_{\mathsf{X}} : f(b) = v \,\}, \qquad
+  \epsilon(v) = \frac{|E(v)|}{\max(1,|C(v)|)} ;
+  \label{eq:escaped}\\
+  \eta(v;T) = \frac{\bigl|\{\, b \in E(v) : t_o(b) \le t(v) + T \,\}\bigr|}
+    {\int_{t(v)}^{t(v)+T} N(v,t)\,\mathrm{d}t} ;
+  \label{eq:exposure}\\
+  \mathrm{GS}(g) = t(g) - \hat t(g) .
+  \label{eq:gateslip}
+\end{gather}
+$C(v)$ is the release-note list of $v$. $E(v)$ counts issues \emph{seen}
+in $v$; when root-cause analysis finds the baseline $\iota(b)$ that
+\emph{introduced} a defect, count by $\iota$ as well. $N(v,t)$ is the
+installed base (units running $v$ at time $t$), so $\eta$ is the number of
+issues seen within a period $T$ after release per unit-time of operation;
+without installed-base data, counting the issues opened within a fixed
+period after $t(v)$ is a weaker substitute. In the gate slip, $\hat t(g)$
+is the target date of $g$ when its content was first committed; it is
+reported with the number of branches moved out of $g$ and discarded from
+it.
+
+\paragraph{Maintenance.}
+\begin{gather}
+  \mathrm{ML}(P;t_1,t_2) =
+  \frac{\bigl|\{\, b : f(b)\in \mathcal{V}(P),\ t_1 < t_o(b) \le t_2 \,\}\bigr|}
+       {\bigl|\{\, b : f(b)\in \mathcal{V}(P)\cup\mathcal{V}(\mathrm{desc}(P)),\ t_1 < t_o(b) \le t_2 \,\}\bigr|} ;
+  \label{eq:maintload}\\
+  U = \{\, b \in \mathcal{B}^{\mathrm{m}} \cap \mathcal{B}_{\mathsf{X}} :
+    \exists\, v \in \mathrm{aff}(b),\ v \npreceq m(b),\
+    \nexists\, b' : (b,b') \in \mathrm{prop} \,\} ,
+  \label{eq:unprop}
+\end{gather}
+where $\mathcal{V}(P)$ is the set of baselines of line $P$,
+$\mathrm{desc}(P)$ its descendant lines, $\mathrm{aff}(b)$ the baselines
+known to be affected and $\mathrm{prop}$ the ``is a port of'' relation
+(\cref{def:relations}); branches with a recorded decision not to port are
+removed from $U$. The same maintenance ratio works for a maintenance
+stream relative to the main stream of its line.
+
+% =====================================================================
+\subsection{Layout algorithm}
+\label{app:layout}
+\label{sec:impl-layout}
+
+Two layout rules fix the geometry of a diagram completely: ordinal columns
+(\ref{lay:ordinal}) fix the horizontal position of every event, and ``one
+branch per lane at a time'' (\ref{lay:onelane}) constrains the vertical
+position of every branch. \Cref{alg:layout} computes both for one product
+line. $f(b)$, $m(b)$ and $g(b)$ are the fork, merge and target baselines
+of branch $b$, $\tau(b)$ its type, and $c(\cdot)$ the column of an event
+(\cref{def:ordinal}).
+
+Each branch occupies a half-open column interval, from its fork baseline
+to its end (merge baseline, discard terminal, target baseline or NOW), so a
+branch that merges into a baseline and one that forks from it can share a
+lane. Assigning lanes is then the classic \emph{interval partitioning}
+problem~\citep{kleinberg2006algo}, solved separately for each type. The
+greedy solution uses exactly as many lanes as the maximum number of
+branches of that type open at the same moment, which is the minimum
+possible. Among the free lanes, a branch already closed by NOW takes the
+innermost one and a branch still open or targeted the outermost one, so
+long-lived work moves outward and later forks reach their inner lanes
+without crossing it (\cref{fig:scale}). The HPB Markup renderer~1.0 packs
+lanes first-fit per type and does not yet apply this preference.
+
+\begin{algorithm}[tbp]
+  \caption{HPB layout of one product line: ordinal columns and per-type
+    lane partitioning.}
+  \label{alg:layout}
+  \small
+  \begin{algorithmic}[1]
+    \Require line $P$; baselines $\mathcal{V}(P)$; branches $\mathcal{B}$
+      of $P$; present time $t_{\mathrm{now}}$
+    \Ensure column $c(e)$ of every event; lane $y(b)$ of every branch
+    \State $\mathcal{E} \gets$ released baselines, branch starts, steps and
+      terminals with time $\le t_{\mathrm{now}}$
+    \State sort $\mathcal{E}$ by (time, tie-breaking rank, identifier)
+    \State $c(e_j) \gets j$ for the $j$-th event $e_j$ of $\mathcal{E}$;
+      \quad $c_{\mathrm{now}} \gets |\mathcal{E}| + 1$
+    \State assign columns $c_{\mathrm{now}}+1, c_{\mathrm{now}}+2, \dots$ to
+      the planned baselines in order of target date
+    \ForAll{$b \in \mathcal{B}$} \Comment{lane interval $[s_b, e_b)$}
+      \State $s_b \gets c(f(b))$
+      \State $e_b \gets c(m(b))$ if merged; $c(\text{terminal})$ if
+        discarded; $c(g(b))$ if targeted; $c_{\mathrm{now}}$ otherwise
+    \EndFor
+    \ForAll{$\theta \in \{\mathsf{I}, \mathsf{L}, \mathsf{X}, \mathsf{T}\}$}
+      \State $Q \gets$ branches of type $\theta$ sorted by $(s_b, e_b)$
+      \State $k_\theta \gets$ maximum number of intervals of $Q$ sharing a
+        point \Comment{sweep over sorted endpoints}
+      \State $F \gets \{1, \dots, k_\theta\}$ \Comment{free lanes,
+        ordered set}
+      \State $H \gets \emptyset$ \Comment{busy lanes, min-heap on $e_b$}
+      \ForAll{$b \in Q$ in order}
+        \While{$H \neq \emptyset$ \textbf{and} $\min_{H} e \le s_b$}
+          \State move the lane of the minimum of $H$ back to $F$
+        \EndWhile
+        \If{$b$ is open or targeted at $t_{\mathrm{now}}$}
+          \State $\ell_b \gets \max F$ \Comment{outermost free lane}
+        \Else
+          \State $\ell_b \gets \min F$ \Comment{innermost free lane}
+        \EndIf
+        \State remove $\ell_b$ from $F$
+        \State insert $(e_b, \ell_b)$ into $H$
+      \EndFor
+    \EndFor
+    \ForAll{$b \in \mathcal{B}$} \Comment{stack lanes outward from the
+      main line}
+      \State $y(b) \gets
+        \begin{cases}
+          +\ell_b & \tau(b) = \mathsf{I}\\
+          +(k_{\mathsf{I}} + \ell_b) & \tau(b) = \mathsf{L}\\
+          -\ell_b & \tau(b) = \mathsf{X}\\
+          -(k_{\mathsf{X}} + \ell_b) & \tau(b) = \mathsf{T}
+        \end{cases}$
+    \EndFor
+  \end{algorithmic}
+\end{algorithm}
+
+With $n$ events and branches, the layout runs in $O(n \log n)$ time and
+$O(n)$ space; drawing glyphs, tags and labels afterwards is linear. Every
+sort ends with the identifier, so the same model at the same present time
+always gives the same diagram. Two variants keep long histories readable:
+\emph{collapsed history} hides the merged branches of all but the most
+recent released baselines and replaces them by count badges
+(\cref{fig:scale}), and \emph{type filters} remove the branches, and the
+lanes, of deselected types. An optional \emph{compaction} that lets
+consecutive events of one kind within a day, week or month share a column
+bends rule~\ref{lay:ordinal}, and a view that uses it must say so.
+
+% =====================================================================
+\subsection{Prototype implementation: data model and status}
+\label{app:impl}
+\label{sec:impl-datamodel}
+
+\Cref{fig:datamodel} shows the overlay schema of the prototype described
+in \cref{sec:implementation}. The existing trackers stay as they are.
+\texttt{products} holds the product lines, and \texttt{parent\_product\_id}
+the family tree of references. \texttt{product\_versions} holds the
+baselines with kind, status and date; a hardware baseline that creates a
+new reference stores it in \texttt{result\_product\_id}, which is the line
+fork of \cref{rule:lineage}. \texttt{product\_plan\_items} attaches one
+tracker item, by (\texttt{item\_type}, \texttt{item\_id}), to one line:
+the pair gives the branch type, \texttt{version\_id} holds the target
+while the branch is open and the merge baseline once it is merged, and
+\texttt{outcome}, \texttt{closed\_at} and \texttt{note} record the terminal
+and the rationale of a discard. \texttt{product\_plan\_comments} attaches
+each comment to exactly one node, so \cref{rule:discussion} is enforced by
+the schema.
+
+\input{figures/datamodel}
+
+Some attributes are \emph{derived} today instead of stored: the opening
+time of a branch is the creation time of its tracker item, and the fork
+baseline is the latest release at that time. That default is right for
+improvements, tasks and lab work, but wrong for issues, whose fork
+baseline is the version in which the defect was observed
+(\cref{prop:escaped}). The design therefore adds a stored
+\texttt{fork\_version\_id}, mandatory for issues and with an
+\emph{inferred} flag, and an append-only log of transitions with actor,
+approver and time, which makes audited reopens possible and keeps the
+original target date from which gate slip is measured. Streams,
+dependencies, propagations, launch bundles, life-cycle milestones and the
+deployment overlay need further tables.
+
+\Cref{tab:impl-status} separates what the design specifies from what the
+prototype does today. The prototype still accepts a discard without a
+rationale, offers released baselines when an item is closed as merged,
+merges the whole targeted set without checking verification, derives the
+fork baseline instead of storing it, and packs lanes per side of the main
+line instead of per type. It therefore does not yet enforce
+\cref{rule:closure,rule:time,rule:gate}; until it does, those violations
+are at least visible in the diagram.
+
+\begin{table}[tbp]
+  \centering
+  \small
+  \caption{Prototype in a product management portal: designed versus
+    built. \checkmark: built; $\sim$: partly built; --: designed only.}
+  \label{tab:impl-status}
+  \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}X
+      >{\centering\arraybackslash}p{1.4cm}
+      >{\raggedright\arraybackslash}p{6.2cm}@{}}
+    \toprule
+    \textbf{Element of the design} & \textbf{Status} & \textbf{Remark} \\
+    \midrule
+    Overlay tables, references to tracker items & \checkmark & no migration of trackers \\
+    Derived mode & \checkmark & read-only reconstruction \\
+    Line family tree and line forks & \checkmark & \texttt{parent\_product\_id}, \texttt{result\_product\_id} \\
+    Stored observed fork baseline, inferred flag & -- & needed for escaped defects per baseline \\
+    Release streams, configurations, applies-to & -- & \\
+    Dependencies, propagations, launch bundles & -- & \\
+    Life-cycle milestones, deployment overlay & -- & \\
+    Append-only transition log with approvers & -- & state tables only \\
+    R1 single origin & $\sim$ & by derivation, not at intake \\
+    R2 explicit closure & $\sim$ & rationale not yet mandatory \\
+    R3 time moves forward & $\sim$ & released baselines still offered \\
+    R4 gate integrity & $\sim$ & batch merge without verification \\
+    R5 lineage and life cycle & \checkmark & life-cycle phases not checked \\
+    R6 typed work & \checkmark & type from the source tracker \\
+    R7 traceable discussion & $\sim$ & comments on nodes; not append-only \\
+    Ordinal columns & \checkmark & \\
+    Lane partitioning per type (\cref{alg:layout}) & -- & today: per side of the main line \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+% flush this appendix's floats before the next appendix
+\clearpage

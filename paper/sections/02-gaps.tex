@@ -1,0 +1,230 @@
+% ---------------------------------------------------------------------
+%  02-gaps.tex -- where today's methods fall short
+% ---------------------------------------------------------------------
+\section{Where Today's Methods Fall Short}
+\label{sec:gaps}
+
+HPB does not replace the methods below; I still use most of them. It sits
+on top of them and fills a specific gap that each one leaves open. This
+section goes through them one family at a time, the way they show up in a
+product manager's week, and says plainly what each does well and where it
+stops. A comparison table and a three-point gap statement close the
+section.
+
+\subsection{Backlogs and Kanban boards}
+\label{sec:gaps-boards}
+
+A backlog is an ordered list of what should be done next. A Kanban
+board~\citep{anderson2010kanban} shows where each item is in the workflow,
+limits work in progress (WIP) and makes flow visible. Both are excellent at
+answering ``what should the team do now?'' and ``where is it stuck?''.
+Reinertsen's work on product development flow~\citep{reinertsen2009flow}
+explains why that matters: queues and WIP drive lead time far more than
+most people expect, and Little's law~\citep{little1961} ties them
+together.
+
+What a board does not record is the \emph{product state}. A card in
+``Done'' tells me the work is finished, not which version contains it. A
+card in ``In progress'' does not say whether the defect was seen on v1.3 or
+v1.4. Two cards for the same product sit next to two cards for another
+product, in the same column, with nothing that shows they belong to
+different lines. And once the card is archived, the link between the work
+and the version it went into is gone. In practice the board answers
+\emph{where is the work}, never \emph{where is the product}.
+
+\subsection{Scrum}
+\label{sec:gaps-scrum}
+
+Scrum~\citep{schwaber2020scrum} gives a team a rhythm: an ordered product
+backlog, time-boxed sprints and a usable increment at the end of each one.
+For a software team shipping continuously, the increment and the release
+can be almost the same thing.
+
+For a product that combines hardware and firmware they are not. A sprint
+increment is not a firmware release that goes through certification, nor a
+hardware revision that goes through a pilot lot. Several sprints, sometimes
+of several teams, feed one product version; some work lives in the lab and
+never enters a sprint at all. Scrum organizes the team's time well, but it
+does not say which product baseline an item started from or ended in, and
+it was never meant to.
+
+\subsection{Roadmaps and Gantt charts}
+\label{sec:gaps-roadmaps}
+
+Roadmaps and Gantt charts answer ``when''. They are the tool management
+asks for, and they are good at showing dates, dependencies between
+activities and the big picture of a portfolio over quarters.
+
+Their weakness is that they plan activities, not product states. A bar
+that says ``low-power mode, March to May'' does not say which version will
+carry it, and when the date slips nobody can see which release is now
+exposed. They are also forward-looking: once the period is over, a roadmap
+is rarely updated to show what actually happened, so it cannot be used for
+audit. In my experience the roadmap and the reality drift apart quickly,
+and the reconciliation is done in a meeting, not in the artifact.
+
+\subsection{Stage-Gate}
+\label{sec:gaps-stagegate}
+
+Stage-Gate~\citep{cooper1990stagegate} brought something very valuable
+into product development: explicit decision points. At each gate a
+cross-functional review decides, against known criteria, whether to
+continue. The phases-and-decisions view of product
+development~\citep{ulrich2016pdd} is still how most hardware programs are
+run.
+
+The gates, however, apply to \emph{projects}. Once the product is on the
+market and evolving through firmware releases, minor hardware revisions
+and a steady stream of improvements and fixes, there is no project left to
+gate, only a sequence of versions. What I needed was the same discipline
+applied to each release: this version does not ship until the work
+committed to it is done and verified, or explicitly deferred.
+
+\subsection{PLM and engineering change orders}
+\label{sec:gaps-plm}
+
+On the hardware side, PLM systems~\citep{stark2015plm} and engineering
+change management~\citep{jarratt2011ec} give strong traceability: change
+requests and orders, item revisions, effectivity, approvals. They build on
+the configuration management discipline of
+baselines, change control and status
+accounting~\citep{ieee828,iso10007}, which is very close in spirit to HPB.
+
+The gap is scope and form. Change orders are document-centric and live in
+a different system from the tracker where firmware and software defects and
+improvements are managed. The PM ends up with hardware lineage in one tool
+and the rest of the product's evolution in another, and nothing that shows
+both on the same timeline. Nor does a change order give a quick picture of
+everything open on a product at once.
+
+\subsection{Git and git-flow}
+\label{sec:gaps-git}
+
+Version control is where the right model already exists. In
+Git~\citep{chacon2014progit} every line of work has an explicit origin,
+parallel lines are first-class, and every merge is a recorded event, so the
+content of each release can be derived from the graph. Git-flow~\citep{driessen2010gitflow}
+added roles (feature, release, hotfix) and a horizontal diagram that
+developers read at a glance; trunk-based development and continuous
+delivery~\citep{humble2010cd} pushed integration further. Versioning
+conventions such as Semantic Versioning~\citep{semver} even encode the
+nature of a change in the version name.
+
+But it all stops at the repository. A git graph does not contain the
+customer's defect report, the lab evaluation of a new sensor, the
+hardware revision forced by a shortage, or the decision to drop an
+improvement because the bill of materials got too expensive. And a product
+with firmware, an app and a cloud service has several repositories, none of
+which is ``the product''. The model is right; it is applied at the wrong
+level.
+
+\subsection{Issue trackers with version fields}
+\label{sec:gaps-trackers}
+
+A word on the tool most teams use every day. Issue trackers usually offer
+\emph{affects version} and \emph{fix version} fields, and release pages
+that list unresolved items. Used with discipline, they record origin and
+closure for each item. They still give no structural view across items: no
+picture of what is running in parallel on a product, no lineage between
+hardware references, and nothing that stops a version from being marked
+released while committed items are open. HPB can be built directly on top
+of such a tracker (\cref{sec:implementation}).
+
+\subsection{Comparison and the gap}
+\label{sec:gaps-comparison}
+
+\Cref{tab:comparison} rates these approaches against eight capabilities
+that follow from the questions in \cref{sec:introduction}, listed in its
+caption: from recording where work starts and which version closes it, to
+hardware lineage, release gates, maintained versions and configurations.
+Each approach is rated as it is commonly practiced, not as it could be
+extended; most tools can be configured to cover more.
+
+\begin{table}[t]
+  \centering
+  \small
+  \caption{How common approaches cover the eight capabilities a product
+    manager needs, as they are usually practiced. (a)~fork baseline
+    recorded; (b)~closing version recorded; (c)~parallel work per product
+    visible; (d)~hardware lineage preserved; (e)~release gate on committed
+    work; (f)~one visual artifact for planning and audit; (g)~several
+    maintained versions in parallel; (h)~configurations and variants.}
+  \label{tab:comparison}
+  \setlength{\tabcolsep}{3pt}
+  \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}X cccccccc@{}}
+    \toprule
+    Approach & (a) & (b) & (c) & (d) & (e) & (f) & (g) & (h) \\
+    \midrule
+    Backlog or list (e.g., Scrum product backlog~\citep{schwaber2020scrum})
+      & -- & -- & -- & -- & -- & -- & -- & -- \\
+    Kanban board~\citep{anderson2010kanban}
+      & -- & -- & $\sim$ & -- & -- & $\sim$ & -- & -- \\
+    Roadmap or Gantt chart
+      & -- & $\sim$ & $\sim$ & $\sim$ & $\sim$ & $\sim$ & $\sim$ & -- \\
+    Tracker with affects/fix version fields
+      & \checkmark & \checkmark & $\sim$ & -- & $\sim$ & -- & $\sim$ & $\sim$ \\
+    ALM or requirements traceability tool
+      & $\sim$ & \checkmark & $\sim$ & -- & $\sim$ & -- & $\sim$ & $\sim$ \\
+    Stage-Gate process~\citep{cooper1990stagegate}
+      & -- & -- & -- & -- & $\sim$ & -- & -- & -- \\
+    PLM engineering change management~\citep{stark2015plm,jarratt2011ec}
+      & \checkmark & \checkmark & $\sim$ & \checkmark & \checkmark & -- & $\sim$ & \checkmark \\
+    Git with a branching model, for code~\citep{driessen2010gitflow}
+      & \checkmark & \checkmark & \checkmark & -- & $\sim$ & $\sim$ & \checkmark & -- \\
+    \midrule
+    \textbf{HPB (by design)}$^{\dagger}$
+      & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark
+      & \checkmark & \checkmark & $\sim$ \\
+    \bottomrule
+  \end{tabularx}
+
+  \smallskip
+  \begin{minipage}{\linewidth}
+    \footnotesize\emph{Note.} \checkmark: supported as commonly practiced;
+    $\sim$: partial, or only through configuration or convention; --: not
+    supported. Ratings are my qualitative assessment of typical use, not
+    the result of a systematic tool review. Roadmaps get $\sim$ for (d)
+    because they often show a successor reference as a new bar, without a
+    recorded link. Stage-Gate gets $\sim$ for (e) because its gates apply
+    to projects, not to each release of a product in the market. PLM change
+    orders gate the release of affected items and record effectivity, but
+    they rarely cover firmware and software work and give no overview,
+    hence -- for (f). Git models get $\sim$ for (f) because their graph
+    covers code only, and $\sim$ for (e) because protected branches and
+    checks gate merges, not product releases. $^{\dagger}$HPB is rated by
+    construction, not by evidence from use (\cref{sec:limitations});
+    configurations are an optional extension and variants are drawn as
+    sibling lines, hence $\sim$ for (h).
+  \end{minipage}
+\end{table}
+
+Read across, the table says two things. First, almost every capability
+already exists somewhere: Git has origin, parallelism and closure for
+code; trackers record versions item by item; PLM has lineage, gates and
+effectivity for hardware; Stage-Gate has decision points; Kanban makes flow
+visible. Second, they are almost never available in one place, at the
+level of the \emph{product}, across hardware, firmware and software, which
+is exactly the level at which a product manager plans releases and is held
+accountable for them. HPB does not claim to invent these capabilities. Its
+contribution is to put them together in one typed graph, with checkable
+rules, a standard picture and an operating routine.
+
+\paragraph{The gap, in three points.}
+\begin{itemize}[leftmargin=1.5em,itemsep=2pt,topsep=3pt]
+  \item \textbf{No product-level graph.} Origin, parallelism and closure
+        are recorded for code, not for the product; work on the product is
+        tracked as items, not as branches of a line of versions.
+  \item \textbf{Hardware and software live apart.} Hardware lineage sits in
+        PLM, firmware and software work in trackers and repositories, and
+        nothing shows both on the same timeline.
+  \item \textbf{Releases are not gates.} Commitments to a version are
+        implicit, so a version can ship while committed work is still open,
+        and nobody can later prove what was in it and why.
+\end{itemize}
+
+Research on software evolution, traceability and release planning covers
+parts of this; its oldest lesson, that a system in use must keep changing
+or become less useful~\citep{lehman1980}, is the daily reality of a
+product manager. HPB records the link between work and product states
+\emph{when each decision is made}, for the whole product, hardware
+included.

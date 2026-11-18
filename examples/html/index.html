@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HPB Markup in plain HTML</title>
+  <style>
+    :root {
+      --ink: #1f2937; --muted: #6b7280; --rule: #e5e7eb; --bg: #ffffff; --panel: #f9fafb;
+      --accent: #0ea5e9; --code-bg: #f3f4f6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--ink);
+      font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    main { max-width: 960px; margin: 0 auto; padding: 32px 16px 64px; }
+    h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
+    h2 { font-size: 18px; margin: 40px 0 6px; }
+    p { margin: 6px 0 12px; }
+    .lead { color: var(--muted); margin-bottom: 24px; }
+    code { font: 13px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+    pre.source {
+      font: 12.5px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; background: var(--code-bg);
+      padding: 12px 14px; border-radius: 6px; overflow-x: auto; margin: 8px 0 12px;
+    }
+    .card { border: 1px solid var(--rule); border-radius: 8px; padding: 12px; overflow-x: auto; background: var(--bg); }
+    /* Auto-rendered blocks keep their element (a <pre> here): reset the code styling once rendered. */
+    pre.hpb { margin: 0; white-space: pre; font: 12.5px/1.5 ui-monospace, monospace; }
+    pre.hpb[data-hpb-processed] { white-space: normal; font: inherit; }
+    pre.hpb[data-hpb-processed] svg, .card svg { display: block; }
+    /* Hide the raw text until the custom element is defined. */
+    /* No flash of raw source before the element is defined. */
+    hpb-diagram:not(:defined) { display: block; white-space: pre; visibility: hidden; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
+    .toolbar label { color: var(--muted); font-size: 13px; }
+    button, select {
+      font: inherit; font-size: 13px; padding: 5px 10px; border: 1px solid var(--rule); border-radius: 6px;
+      background: var(--bg); color: var(--ink); cursor: pointer;
+    }
+    button:hover, select:hover { border-color: #cbd5e1; }
+    .log { font: 12.5px ui-monospace, monospace; color: var(--muted); min-height: 1.5em; margin-top: 8px; }
+    .log strong { color: var(--ink); }
+    footer { margin-top: 48px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--rule); padding-top: 16px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>HPB Markup in plain HTML</h1>
+  <p class="lead">One <code>&lt;script&gt;</code> tag, no build step. The bundle exposes <code>window.HPB</code>,
+    renders HPB blocks on load and registers the <code>&lt;hpb-diagram&gt;</code> element.</p>
+
+  <h2>1. Auto-render a <code>&lt;pre class="hpb"&gt;</code> block</h2>
+  <p>Like Mermaid: every <code>pre.hpb</code>, <code>code.language-hpb</code> or <code>.hpb</code> block is replaced by its diagram when the page loads.
+    Hover a branch to dim the others; click a node to log it below.</p>
+  <div class="card">
+<pre class="hpb">
+hpb "Product A — firmware line"
+line A "Product A"
+release v1.0 @2026-01
+improvement I-21 "Faster pairing"
+issue X-101 "Crash on boot"
+release v1.0.1 merges X-101
+issue X-102 "Wrong time after power cut"
+task T-8 "Migrate logs"
+release v1.1 @2026-03 merges I-21, X-102
+improvement I-22 "Low-power mode"
+issue X-103 "Menu translation"
+release v1.2 @2026-05 merges T-8, I-22, X-103
+</pre>
+  </div>
+  <div class="log" id="auto-log">Click a branch or a baseline.</div>
+
+  <h2>2. Markdown-style fenced block</h2>
+  <p>Markdown renderers emit <code>&lt;pre&gt;&lt;code class="language-hpb"&gt;</code>; that is picked up too.</p>
+  <div class="card">
+<pre><code class="language-hpb">hpb "Planning with a release gate"
+line A "Product A"
+release v2.0 @2026-06
+improvement I-50 "Remote unlock"
+issue X-211 "Battery drain"
+issue X-212 "Wi-Fi reconnect"
+issue X-213 "Typo in logs"
+now
+plan v2.1 @2026-12 targets I-50, X-211, X-212
+plan v2.2 @2027-03
+</code></pre>
+  </div>
+
+  <h2>3. The <code>&lt;hpb-diagram&gt;</code> custom element</h2>
+  <p>Text content (or a <code>src</code> URL) goes in, an SVG in a shadow root comes out. It re-renders when its
+    attributes or its text change and dispatches <code>hpb-node-click</code>.</p>
+  <div class="toolbar">
+    <label for="theme">theme</label>
+    <select id="theme">
+      <option value="default">default</option>
+      <option value="mono">mono</option>
+      <option value="dark">dark</option>
+      <option value="auto">auto</option>
+    </select>
+    <label><input type="checkbox" id="closed" checked> show-closed</label>
+    <button type="button" id="add-release">Add a release</button>
+  </div>
+  <div class="card">
+    <hpb-diagram id="revision" theme="default">
+hpb "DMS-4000: hardware revision"
+line RA "DMS-4000 Rev A"
+release v1.2 @2026-01
+lab L-5 "Sensor board v2"
+step L-5 fail "EMC test"
+improvement I-30 "Low-power mode"
+step L-5 pass "EMC retest"
+release v1.3
+release RevB hardware merges L-5, I-30
+line RB "DMS-4000 Rev B" from RevB
+release v2.0 on RB
+use RA
+release v1.4
+issue X-118 "Relay chatter"
+release v1.4.1 merges X-118
+eos RA @2026-12
+    </hpb-diagram>
+  </div>
+  <div class="log" id="element-log">Click a branch or a baseline.</div>
+  <pre class="source">&lt;script src="hpb.min.js"&gt;&lt;/script&gt;
+&lt;hpb-diagram theme="default"&gt;
+  line A "Product A"
+  release v1.0
+  issue X-1 "Crash on boot"
+  release v1.0.1 merges X-1
+&lt;/hpb-diagram&gt;
+&lt;hpb-diagram src="product-a.hpb" show-closed="false"&gt;&lt;/hpb-diagram&gt;</pre>
+
+  <h2>4. Loading a <code>.hpb</code> file with <code>src</code></h2>
+  <p>Needs the page to be served over HTTP (browsers block <code>fetch</code> on <code>file://</code>).
+    From the repository root: <code>npx serve .</code> and open <code>/examples/html/</code>.</p>
+  <div class="card">
+    <hpb-diagram id="from-file" src="../fixtures/D-discard-retarget.hpb"></hpb-diagram>
+  </div>
+
+  <h2>5. Render to a string</h2>
+  <p><code>await HPB.render(id, code)</code> resolves with <code>{ svg, diagnostics, bindFunctions }</code>, as in Mermaid, without touching the page.</p>
+  <div class="card" id="manual"></div>
+
+  <footer>HPB Markup · MIT License · © 2026 Achraf Bouchtarouif El Khiat</footer>
+</main>
+
+<script>
+  // Registered before the bundle so an early src failure (e.g. on file://) is not missed.
+  document.addEventListener("hpb-error", function (e) {
+    e.target.insertAdjacentHTML("afterend", "<p class=\"log\">Serve the repository over HTTP to see this diagram.</p>");
+  });
+</script>
+<script src="../../packages/web/dist/hpb.min.js"></script>
+<script>
+  // Optional: the bundle already renders on load with these defaults.
+  HPB.initialize({
+    theme: "default",
+    onNodeClick: function (node) {
+      document.getElementById("auto-log").innerHTML = "Clicked <strong>" + node.kind + " " + node.id + "</strong>";
+    }
+  });
+
+  var el = document.getElementById("revision");
+  el.addEventListener("hpb-node-click", function (e) {
+    document.getElementById("element-log").innerHTML = "hpb-node-click → <strong>" + e.detail.kind + " " + e.detail.id + "</strong>";
+  });
+  document.getElementById("theme").addEventListener("change", function (e) {
+    el.setAttribute("theme", e.target.value);
+  });
+  document.getElementById("closed").addEventListener("change", function (e) {
+    el.setAttribute("show-closed", e.target.checked ? "true" : "false");
+  });
+  // Editing the text content re-renders the element (MutationObserver).
+  var extra = 0;
+  document.getElementById("add-release").addEventListener("click", function () {
+    extra += 1;
+    el.textContent += "\nuse RB\nissue X-" + (200 + extra) + " \"Field report " + extra + "\"\nrelease v2." + extra + " merges X-" + (200 + extra) + "\n";
+  });
+
+  HPB.render("manual-svg", [
+    'hpb "Readability at scale"',
+    "config showClosed = false",
+    'line A "Product A"',
+    "release v1.0",
+    "collapse v1.0 14",
+    "release v1.1",
+    "collapse v1.1 9",
+    'issue X-1 "Open defect"',
+    "now"
+  ].join("\n")).then(function (result) {
+    var manual = document.getElementById("manual");
+    manual.innerHTML = result.svg;
+    if (result.bindFunctions) result.bindFunctions(manual);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "@hpb/playground",
+  "version": "1.0.0",
+  "private": true,
+  "description": "HPB Markup playground: a single static page with a live editor, examples A-E, diagnostics and SVG export.",
+  "license": "MIT",
+  "author": "Achraf Bouchtarouif El Khiat <achrafbouchtarouif@gmail.com>",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "devDependencies": {
+    "@hpb/web": "workspace:*"
+  }
+}

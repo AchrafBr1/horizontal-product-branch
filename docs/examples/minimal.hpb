@@ -1,0 +1,5 @@
+hpb "Minimal diagram"
+line A "Product A"
+release v1.0
+issue X-1 "Crash on boot"
+release v1.0.1 merges X-1

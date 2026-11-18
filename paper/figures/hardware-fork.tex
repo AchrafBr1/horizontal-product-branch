@@ -1,0 +1,63 @@
+% F4 -- Condition C: hardware revision and line fork.
+% Illustrative data. Requires hpb.sty v1.1. Canvas: document defaults.
+% The hardware baseline Rev B is the FIRST node of the child line (drawn
+% above its parent, in its own lane band); the lineage connector leaves the
+% parent main line after v1.3, the baseline Rev B was derived from.
+\begin{figure}[t]
+\centering
+\hpbfit{%
+\begin{hpbgraph}
+  % ---- child line DMS-4000 Rev B (y = 3.5), its own band and lane
+  \hpblane{4.5}{imp}{Improvement (I)}{0}{19.7}
+  \hpblane{3.5}{main}{DMS-4000\\Rev B}{0}{9}
+  \hpbmainline{9}{19.7}[3.5]
+  \hpbseparator{2.85}{-2.4}{19.7}
+  % ---- parent line DMS-4000 Rev A (y = 0) and its lanes
+  \hpblane{2}{lab}{Lab (L)}{0}{19.7}
+  \hpblane{1}{imp}{Improvement (I)}{0}{19.7}
+  \hpblane{-1}{iss}{Issue (X)}{0}{19.7}
+  \hpbmainline{0}{19}
+  \hpborigin{0}{DMS-4000\\Rev A}
+  \hpbrelease{1}{v1.2}
+  \hpbrelease{5}{v1.3}
+  \hpbmilestone{10}{end of sale}
+  \hpbrelease{11}{v1.4}
+  \hpbrelease{16}{v1.4.1}
+  \hpbeos{19}
+  % ---- line fork: lineage connector from the parent main line (after v1.3)
+  %      to the hardware baseline Rev B, first baseline of the child line
+  \hpblinefork{9}{0}{3.5}
+  \hpbhardware{9}{Rev B}[3.5]
+  \hpbrelease{12}{v2.0}[3.5]
+  \hpbrelease{18}{v2.1}[3.5]
+  % lab evolution with test steps, and an improvement, both forked from v1.2
+  % and merged into Rev B (cross-line merge; nested rises)
+  \hpbbranch[forkoff=0.5, mergeoff=0.6, mergeline=3.5,
+    label={L-5 Sensor board v2}]{lab}{1}{2}{2}{7}{merge}{9}
+  \hpbbranch[forkoff=0.8, mergeoff=0.4, mergeline=3.5,
+    label={I-30 Low-power mode}]{imp}{1}{1}{3}{8}{merge}{9}
+  \hpbstep{lab}{4}{2}{fail}
+  \hpbstep{lab}{6}{2}{pass}
+  % work on the child line
+  \hpbbranch[line=3.5, label={I-40 Remote unlock}]{imp}{12}{4.5}{13}{17}{merge}{18}
+  % Rev A in maintenance: a defect observed in v1.4, fixed by firmware v1.4.1
+  \hpbbranch[label={X-118 Relay chatter}]{iss}{11}{-1}{12}{14}{merge}{16}
+  % ---- annotation
+  \hpbcallout{12.6,1.6}{line fork (R5): parent(Rev B) = Rev A,\\
+    Rev B derived from v1.3}{9,1.6}
+  % ---- ordinal time axis with calendar ticks
+  \hpbaxis{0}{19.7}{-1.85}
+  \hpbtick{1}{Jan 2026}{-1.85}
+  \hpbtick{5}{Mar}{-1.85}
+  \hpbtick{9}{Jun}{-1.85}
+  \hpbtick{16}{Sep}{-1.85}
+  \hpbtick{19}{Dec}{-1.85}
+\end{hpbgraph}}
+\caption{Situation~C: a hardware revision that creates a new
+reference (illustrative). L-5 and I-30 merge into the diamond Rev~B, which
+starts the child line \emph{DMS-4000 Rev~B}; the lineage connector leaves the
+parent after \texttt{v1.3}, the version Rev~B derives from
+(\cref{rule:lineage}). The parent keeps its own life: end of sale, the fix
+for X-118 in \texttt{v1.4.1}, and end of service (EoS).}
+\label{fig:hardware-fork}
+\end{figure}

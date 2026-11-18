@@ -1,0 +1,8 @@
+hpb "Merged, awaiting release"
+line A "Product A"
+release v1.0 @2026-01
+issue X-7 "Battery drain"
+issue X-8 "Wi-Fi reconnect"
+plan v1.1 @2026-04 targets X-8
+merge X-7 into v1.1 @2026-02
+now

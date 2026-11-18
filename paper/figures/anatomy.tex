@@ -1,0 +1,62 @@
+% F1 -- Anatomy of an HPB diagram: the glyphs of a single-line diagram.
+% Illustrative data. Requires hpb.sty v1.1. Canvas: document defaults.
+% Callout leaders never cross a label or a branch other than their target.
+\begin{figure}[t]
+\centering
+\hpbfit{%
+\begin{hpbgraph}
+  % ---- lanes: proactive work above, reactive work below the main line
+  \hpblane{2}{lab}{Lab (L)}{0}{19.6}
+  \hpblane{1}{imp}{Improvement (I)}{0}{19.6}
+  \hpblane{-1}{iss}{Issue (X)}{0}{19.6}
+  \hpblane{-2}{task}{Task (T)}{0}{19.6}
+  % ---- main line: history (solid) up to NOW, plan (dashed) afterwards
+  \hpbmainline{0}{16}
+  \hpbmainline*{16}{19.6}
+  \hpborigin{0}{Product A}
+  \hpbrelease{1}{v1.0}   \hpbcollapsed{1}{12}
+  \hpbrelease{4}{v1.0.1}
+  \hpbrelease{11}{v1.1}
+  \hpbplanned{18}{v1.2}{Mar 2027}
+  % ---- branches (upward forks from v1.0.1 clear its wide tag)
+  \hpbbranch[label={X-31 Crash}]{iss}{1}{-1}{2}{3}{merge}{4}
+  \hpbbranch[forkoff=0.5, label={T-7 Migrate logs}]{task}{4}{-2}{5}{14}{discard}{}
+  \hpbbranch[forkoff=0.95, mergeoff=0.6, label={I-12 Faster pairing}]{imp}{4}{1}{6}{10}{merge}{11}
+  \hpbbranch[forkoff=0.7, label={L-3 New sensor}]{lab}{4}{2}{7}{16}{open}{}
+  \hpbbranch[label={X-40 Battery drain}]{iss}{11}{-1}{12}{16}{target}{18}
+  % ---- steps on branches
+  \hpbstep{lab}{8}{2}{pass}
+  \hpbstep{task}{9}{-2}{done}
+  \hpbstep{lab}{13}{2}{fail}
+  \hpbstep{iss}{15}{-1}{todo}
+  % ---- rationale of the discard, gate of the planned baseline, NOW
+  \hpblabel[below center]{14}{-2}{\itshape rationale: superseded}
+  \hpbgate[1.6]{18}{1}{-1}{gate v1.2}
+  \hpbnow{16}{2}{-2}
+  % ---- callouts, upper row (targets reachable without crossing a path)
+  \hpbcallout{-1.15,3.35}{lane legend}{-1.15,2.3}
+  \hpbcallout{1.25,3.35}{main line\\(the product)}{0.45,0.05}
+  \hpbcallout{3.6,3.35}{version tag\\(released)}{1.15,0.95}
+  \hpbcallout{6.2,3.35}{fork from\\baseline}{4.7,1.3}
+  \hpbcallout{11.0,3.35}{lab test steps\\pass / fail}{13,2.15}
+  \hpbcallout{14.3,3.35}{open branch\\(head at NOW)}{16,2.2}
+  \hpbcallout{18.0,3.35}{planned baseline\\and target date}{18,1.0}
+  % ---- callouts, lower rows
+  \hpbcallout{-1.15,-3.25}{lane guide}{-0.05,-2}
+  \hpbcallout{2.6,-3.25}{start node\\with type letter}{2,-1.2}
+  \hpbcallout{7.6,-3.25}{sub-task step\\(done)}{9,-2.15}
+  \hpbcallout{11.4,-3.25}{discard with\\rationale}{13.1,-2.45}
+  \hpbcallout{16.3,-3.25}{pending step\\(todo)}{15,-1.15}
+  \hpbcallout{0.4,-4.15}{collapsed history:\\12 merged branches}{1,-0.6}
+  \hpbcallout{4.6,-4.15}{merge into\\baseline}{3.5,-0.6}
+  \hpbcallout{18.45,-4.15}{targeted branch\\(dashed to gate)}{17.5,-0.6}
+\end{hpbgraph}}
+\caption{Anatomy of an HPB diagram, on one illustrative product line. The
+thick line is the product and its versions; improvements and lab work run
+above it, issues and tasks below. Every branch starts at the version it
+forked from and ends in a merge (check mark), a discard (gray cross, with its
+reason) or an open head on NOW, continued as a dashed line into the gate of
+its planned target. Glyphs for several lines or streams are shown in
+\cref{fig:hardware-fork,fig:backport,fig:shared} and in \cref{app:card}.}
+\label{fig:anatomy}
+\end{figure}

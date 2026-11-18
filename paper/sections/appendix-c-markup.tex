@@ -1,0 +1,244 @@
+% ---------------------------------------------------------------------
+%  appendix-c-markup.tex -- HPB Markup v1.0 language reference
+%  Kept in line with docs/language.md in the repository (sections 3, 5 and 10).
+% ---------------------------------------------------------------------
+\section{HPB Markup Language Reference}
+\label{app:markup}
+
+This appendix is the reference for HPB Markup v1.0, the text language of
+\cref{sec:tooling}. The toolkit documentation at \hpbrepo{} carries the
+same reference with more examples. \Cref{tab:markup} lists every
+statement, \cref{tab:markup-diag} the main diagnostics, and the grammar
+closes the appendix.
+
+\paragraph{Lexical conventions.}
+One statement per line. Keywords are case-insensitive. Identifiers match
+\texttt{[A-Za-z0-9.\_-]+}, so versions such as \texttt{v1.0.1} and
+references such as \texttt{Rev-B} or \texttt{X-118} need no quoting. Titles
+and rationales are strings in double quotes; \texttt{\textbackslash"} and
+\texttt{\textbackslash\textbackslash} escape a quote and a backslash.
+\texttt{\#} and \texttt{\%\%} start a comment that runs to the end of the
+line. Blank lines and indentation are ignored. Dates are written
+\texttt{@YYYY-MM-DD} or \texttt{@YYYY-MM}.
+
+\paragraph{Time.}
+Statement order is time order: every statement that creates an event takes
+the next column. The merge terminals of the branches closed by one
+\texttt{release \dots{} merges} statement share one column just before the
+baseline (they lie on different lanes; see layout rule~\ref{lay:ordinal}).
+When \texttt{now} is omitted, NOW is drawn after the last historical event
+only if the diagram has something in the future (planned baselines, open
+branches or merges awaiting release); a pure history has no NOW marker.
+Dates only produce calendar ticks; a date earlier than a previous one
+produces a warning.
+
+\paragraph{The gate rule in the Markup.}
+The Markup checks a structural version of \cref{rule:gate}: no targeted
+branch may still be open when its baseline is released. Verification
+evidence is not modeled. A \texttt{release \dots{} merges} statement is the
+publication of \cref{def:gate}, with the listed branches as its targeted
+set. A \texttt{force} release records a deliberate violation: the model is
+then not well formed under \cref{rule:gate}, and the diagram shows it with
+the warning \texttt{W-R4-FORCED} and a ``!'' badge.
+
+\providecommand{\HPBkw}[1]{\texttt{#1}}
+\providecommand{\HPBph}[1]{\ensuremath{\langle}\textit{#1}\ensuremath{\rangle}}
+
+\begin{table}[p]
+  \centering
+  \footnotesize
+  \caption{HPB Markup v1.0 statements. Square brackets mark optional parts;
+    the optional clauses of a statement may be written in any order, each
+    at most once. \HPBph{vid} is a baseline (version) identifier,
+    \HPBph{bid} a branch identifier, \HPBph{id} a line identifier.}
+  \label{tab:markup}
+  \renewcommand{\arraystretch}{1.12}
+  \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{5.6cm}
+      >{\raggedright\arraybackslash}X@{}}
+    \toprule
+    \textbf{Statement} & \textbf{Meaning} \\
+    \midrule
+    \multicolumn{2}{@{}l}{\textit{Document and lines}} \\
+    \HPBkw{hpb} [\HPBph{string}]
+      & Optional header with the diagram title. \\
+    \HPBkw{config} \HPBph{key} [\HPBkw{=}] \HPBph{value}
+      & \HPBkw{time} = \HPBkw{ordinal}\,|\,\HPBkw{linear};
+        \HPBkw{labels} = \HPBkw{full}\,|\,\HPBkw{ref}\,|\,\HPBkw{none};
+        \HPBkw{theme} = \HPBkw{default}\,|\,\HPBkw{mono}\,|\,\HPBkw{dark};
+        \HPBkw{showClosed} = \HPBkw{true}\,|\,\HPBkw{false}. \\
+    \HPBkw{line} \HPBph{id} [\HPBph{string}] [\HPBkw{from} \HPBph{vid}]
+      & Declares a product line and makes it current; the first line is the
+        default. With \HPBkw{from}, a child line forked from the released
+        \emph{hardware} baseline \HPBph{vid} (line fork, \cref{rule:lineage}). \\
+    \HPBkw{use} \HPBph{id}
+      & Makes another declared line current. \\
+    \HPBkw{eos} [\HPBph{id}] [\HPBph{date}]
+      & End-of-support bar on a line. \\
+    \midrule
+    \multicolumn{2}{@{}l}{\textit{Baselines}} \\
+    \HPBkw{release} \HPBph{vid} [\HPBph{kind}] [\HPBph{date}]
+      [\HPBkw{merges} \HPBph{bid}, \dots] [\HPBkw{force}] [\HPBkw{on} \HPBph{id}]
+      & Released baseline; publishes it and closes the listed branches
+        into it. \HPBph{kind} is \HPBkw{firmware} (default),
+        \HPBkw{software}, \HPBkw{hardware} (diamond) or \HPBkw{other}.
+        \HPBkw{force} records a release with open targeted branches as a
+        violation (warning badge). \\
+    \HPBkw{plan} \HPBph{vid} [\HPBph{kind}] [\HPBph{date}]
+      [\HPBkw{targets} \HPBph{bid}, \dots] [\HPBkw{on} \HPBph{id}]
+      & Planned baseline, right of NOW; the listed branches are targeted at
+        it. \\
+    \HPBkw{collapse} \HPBph{vid} \HPBph{n}
+      & Count badge: $n$ merged branches hidden at this baseline. \\
+    \midrule
+    \multicolumn{2}{@{}l}{\textit{Branches}} \\
+    \HPBph{type} \HPBph{bid} [\HPBph{string}] [\HPBkw{from} \HPBph{vid}]
+      [\HPBkw{on} \HPBph{id}] [\HPBkw{targets}\,|\,\HPBkw{target} \HPBph{vid}]
+      [\HPBph{date}]
+      & Opens a branch. \HPBph{type} is \HPBkw{improvement}
+        (\HPBkw{imp}, \HPBkw{feature}), \HPBkw{issue} (\HPBkw{bug},
+        \HPBkw{defect}, \HPBkw{x}), \HPBkw{task} (\HPBkw{t}) or \HPBkw{lab}
+        (\HPBkw{l}, \HPBkw{evolution}). Without \HPBkw{from}, it forks from
+        the latest released baseline of its line, the default of
+        \cref{def:branch}; an issue observed in an older version needs
+        \HPBkw{from} (\cref{rule:origin}). \\
+    \HPBkw{step} \HPBph{bid} \HPBkw{done}\,|\,\HPBkw{todo}\,|\,%
+      \HPBkw{pass}\,|\,\HPBkw{fail} [\HPBph{string}] [\HPBph{date}]
+      & Intermediate step on a branch (e.g., a laboratory test). \\
+    \HPBkw{merge} \HPBph{bid} \HPBkw{into} \HPBph{vid} [\HPBph{date}]
+      & \HPBph{vid} must still be planned. Marks the branch as resolved,
+        with its terminal at this column (the verification time of
+        \cref{app:formal-ordinal}); the branch is merged when \HPBph{vid}
+        is released. A baseline already released cannot receive later
+        merges (\texttt{E-MERGE-PAST}). \\
+    \HPBkw{discard} \HPBph{bid} [\HPBph{string}] [\HPBph{date}]
+      & Discard terminal; the rationale is printed in italics. \\
+    \HPBkw{target} \HPBph{bid} \HPBph{vid}
+      & (Re)targets an open branch at a planned baseline; a former target
+        is drawn faded. \\
+    \midrule
+    \multicolumn{2}{@{}l}{\textit{Markers}} \\
+    \HPBkw{now}
+      & The NOW column, at most once. Only planning statements may follow:
+        \HPBkw{plan}, \HPBkw{target}, \HPBkw{note}, \HPBkw{collapse},
+        \HPBkw{config} and \HPBkw{use}. \\
+    \HPBkw{note} \HPBph{vid}\,|\,\HPBph{bid} \HPBph{string}
+      & Callout attached to a node. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\paragraph{Diagnostics.}
+Every diagnostic carries a severity, a stable code, a line, a column and a
+message (\cref{tab:markup-diag}). The core checks rules R1--R4 directly and
+reports them with the rule as code; R5 and R6 are protected by the
+grammar and by the line-fork check. Errors stop the diagram from being
+drawn as valid; by default the renderer shows them in an error box instead
+of throwing. The full list of codes is in the toolkit documentation.
+
+\begin{table}[!htbp]
+  \centering
+  \small
+  \caption{Main diagnostics of HPB Markup v1.0, their codes and the rule
+    each one protects.}
+  \label{tab:markup-diag}
+  \renewcommand{\arraystretch}{1.1}
+  \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}X
+      >{\raggedright\arraybackslash}p{3.3cm}
+      >{\centering\arraybackslash}p{1.1cm}
+      >{\centering\arraybackslash}p{1.0cm}@{}}
+    \toprule
+    \textbf{Situation} & \textbf{Code} & \textbf{Level} & \textbf{Rule} \\
+    \midrule
+    Branch with no released baseline to fork from & \texttt{R1} & error & R1 \\
+    Branch closed twice, or changed after its terminal & \texttt{R2} & error & R2 \\
+    Merge into a baseline that does not succeed the fork, including the fork itself & \texttt{R3} & error & R3 \\
+    Release with open targeted branches (no \texttt{force}) & \texttt{R4} & error & R4 \\
+    Release with \texttt{force} & \texttt{W-R4-FORCED} & warning & R4 \\
+    \texttt{line \dots{} from} a baseline that is unknown, not released or not \texttt{hardware} & \texttt{E-LINE-FORK} & error & R5 \\
+    Unknown statement, branch type or step state & \texttt{E-SYNTAX} & error & R6 \\
+    Merge into a baseline released earlier & \texttt{E-MERGE-PAST} & error & -- \\
+    Undeclared line, branch or baseline & \texttt{E-UNKNOWN-*} (\texttt{LINE}, \texttt{BRANCH}, \texttt{BASELINE}) & error & -- \\
+    Historical event after \texttt{now} & \texttt{E-AFTER-NOW} & error & -- \\
+    Date earlier than a previous date & \texttt{W-DATE-ORDER} & warning & -- \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\paragraph{Grammar.}
+The grammar below uses an EBNF-like notation: \texttt{?} optional,
+\texttt{|} alternative, \texttt{*} repetition, literals in double quotes,
+and \texttt{\{ \dots{} \}} any of the listed clauses, in any order, each at
+most once.
+
+\begin{lstlisting}[language=hpbplain,basicstyle=\ttfamily\scriptsize]
+document   := header? statement*
+header     := "hpb" string?
+statement  := config | line | use | release | plan | branch | step
+            | merge | discard | target | now | eos | collapse | note
+
+config     := "config" key "="? value
+line       := "line" id string? ("from" vid)?
+use        := "use" id
+release    := "release" vid { kind | date | "merges" idlist | "force" | "on" id }
+plan       := "plan" vid { kind | date | "targets" idlist | "on" id }
+kind       := "firmware" | "software" | "hardware" | "other"
+branch     := btype bid { string | "from" vid | "on" id
+                        | ("targets" | "target") vid | date }
+btype      := "improvement" | "imp" | "feature" | "issue" | "bug" | "defect"
+            | "x" | "task" | "t" | "lab" | "l" | "evolution"
+step       := "step" bid ("done" | "todo" | "pass" | "fail") { string | date }
+merge      := "merge" bid "into" vid date?
+discard    := "discard" bid { string | date }
+target     := "target" bid vid
+now        := "now"
+eos        := "eos" { id | date }
+collapse   := "collapse" vid integer
+note       := "note" (vid | bid) string
+
+date       := "@" YYYY "-" MM ("-" DD)?
+idlist     := id ("," id)*
+id, vid, bid := [A-Za-z0-9._-]+
+string     := '"' ( '\' any | not '"' )* '"'
+comment    := ("#" | "%%") to end of line
+\end{lstlisting}
+
+\paragraph{Semantics of \texttt{release \dots{} merges}.}
+The statement \lstinline[style=hpb]|release v1.1 merges I-21, X-102|
+publishes the baseline \texttt{v1.1} on the current line, in the sense of
+\cref{def:gate}, with
+\texttt{I-21} and \texttt{X-102} as its targeted set: both are merged into
+it at that moment, and their terminals share the column just before it.
+To record that a branch was resolved before the release, write
+\texttt{merge I-21 into v1.1} while \texttt{v1.1} is still planned; the
+branch is then drawn as resolved and awaiting release, and it counts as
+merged when \texttt{v1.1} is released.
+
+\paragraph{A second example: hardware revision and line fork.}
+The text below describes the hardware situation of
+\cref{fig:hardware-fork}, with its own illustrative items: a laboratory
+evolution that fails and then passes its EMC test, a hardware baseline
+\texttt{RevB} that creates a new reference, the child line that starts from
+it, and the old line that keeps receiving firmware fixes until its end of
+support.
+
+\begin{lstlisting}[style=hpb,basicstyle=\ttfamily\footnotesize]
+hpb "DMS-4000: hardware revision"
+line RA "DMS-4000 Rev A"
+release v1.2 @2026-01
+lab L-5 "Sensor board v2"
+step L-5 fail "EMC test"
+improvement I-30 "Low-power mode"
+step L-5 pass "EMC retest"
+release v1.3
+release RevB hardware merges L-5, I-30
+line RB "DMS-4000 Rev B" from RevB
+release v2.0 on RB
+use RA
+release v1.4
+issue X-118 "Relay chatter"
+release v1.4.1 merges X-118
+eos RA @2026-12
+\end{lstlisting}
+
+% flush this appendix's floats before the next appendix
+\clearpage

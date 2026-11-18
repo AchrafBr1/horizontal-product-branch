@@ -1,0 +1,7 @@
+hpb "Forced release (R4 overridden)"
+line A "Product A"
+release v1.0
+issue X-1 "Crash on boot"
+issue X-2 "Slow menu"
+plan v1.1 targets X-1, X-2
+release v1.1 merges X-1 force

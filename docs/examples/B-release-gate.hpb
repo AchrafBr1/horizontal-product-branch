@@ -1,0 +1,17 @@
+hpb "Planning with a release gate"
+# Situation B of the HPB paper (figures/release-gate.tex), illustrative data.
+# v2.1 is a planned baseline with a gate: it cannot be released while I-50,
+# X-211 or X-212 is open (rule R4). X-213 is open but not targeted.
+line A "Product A"
+release v2.0 @2027-01
+issue X-210 "Sync error"
+improvement I-50 "Multi-user access"
+issue X-213 "Display flicker"
+release v2.0.1 @2027-02 merges X-210
+issue X-211 "Report totals"
+issue X-212 "CSV encoding"
+step X-212 pass "verified"
+step I-50 done "implemented"
+now
+plan v2.1 @2027-05 targets I-50, X-211, X-212
+plan v2.2 @2027-09

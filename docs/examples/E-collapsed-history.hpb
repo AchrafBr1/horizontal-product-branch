@@ -1,0 +1,26 @@
+hpb "Readability at scale"
+# Situation E of the HPB paper (figures/scale.tex), illustrative data.
+# Older releases are collapsed into count badges; eight branches are open at
+# NOW, each type gets as many lanes as it has overlapping branches, and lanes
+# freed by the merges into v2.2 are reused by I-45 and X-95.
+line B "Product B"
+release v1.0
+collapse v1.0 14
+task T-14 "EMC re-test"
+release v1.1
+collapse v1.1 9
+release v2.0
+collapse v2.0 21
+lab L-5 "Radio module"
+task T-20 "Field logs"
+issue X-88 "Rare reboot"
+release v2.1
+collapse v2.1 12
+lab L-7 "Antenna tuning"
+improvement I-42 "Fleet dashboard"
+improvement I-41 "Quick setup"
+issue X-90 "Clock drift"
+release v2.2 merges I-41, X-90
+improvement I-45 "Voice UI"
+issue X-95 "Pairing"
+now

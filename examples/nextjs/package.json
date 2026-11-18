@@ -1,0 +1,28 @@
+{
+  "name": "@hpb/example-nextjs",
+  "private": true,
+  "version": "1.0.0",
+  "description": "HPB Markup example: Next.js App Router with a server-rendered page and an interactive client page.",
+  "license": "MIT",
+  "author": "Achraf Bouchtarouif El Khiat <achrafbouchtarouif@gmail.com>",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hpb/core": "workspace:*",
+    "@hpb/react": "workspace:*",
+    "next": "14.2.35",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "20.17.10",
+    "@types/react": "18.3.18",
+    "@types/react-dom": "18.3.5",
+    "raw-loader": "4.0.2",
+    "typescript": "5.6.3"
+  }
+}

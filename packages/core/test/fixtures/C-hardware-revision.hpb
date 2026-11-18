@@ -1,0 +1,21 @@
+hpb "DMS-4000: hardware revision"
+# Situation C of the HPB paper (figures/hardware-fork.tex), illustrative data.
+# Rev B fails the interchangeability test, so it starts a new line with an
+# explicit parent link (rule R5); Rev A keeps its own maintenance until EoS.
+line RA "DMS-4000 Rev A"
+release v1.2 @2026-01
+lab L-5 "Sensor board v2"
+improvement I-30 "Low-power mode"
+step L-5 fail "EMC test"
+release v1.3 @2026-03
+step L-5 pass "EMC retest"
+release RevB hardware @2026-06 merges L-5, I-30
+line RB "DMS-4000 Rev B" from RevB
+use RA
+release v1.4
+release v2.0 on RB
+issue X-118 "Relay chatter"
+improvement I-40 "Remote unlock" on RB
+release v1.4.1 @2026-09 merges X-118
+release v2.1 on RB merges I-40
+eos RA @2026-12

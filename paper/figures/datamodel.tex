@@ -1,0 +1,145 @@
+% F9 -- Data model of the reference implementation: an overlay on existing
+% trackers. Requires hpb.sty v1.0 (palette, styles, layers of hpbgraph).
+% Units: hpbgraph with col = lane = 1cm, i.e. plain centimetres.
+\begin{figure}[t]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{hpbgraph}[col=1cm, lane=1cm]
+  \tikzset{
+    dm/head/.style  = {anchor=north west, inner xsep=4pt, inner ysep=3pt,
+                       align=left, text=hpbInk,
+                       font=\sffamily\fontsize{7}{8.6}\selectfont},
+    dm/row/.style   = {anchor=north west, inner xsep=4pt, inner ysep=0pt,
+                       minimum height=0.3cm, text height=5pt, text depth=1.6pt,
+                       align=left, text=hpbInk,
+                       font=\fontsize{6.5}{7.8}\selectfont},
+    dm/frame/.style = {draw=hpbInk, line width=1pt, rounded corners=4pt},
+    dm/fk/.style    = {draw=hpbInk, line width=0.9pt, rounded corners=5pt,
+                       -{Stealth[length=5pt,width=4.5pt]}},
+    dm/ref/.style   = {dm/fk, dash pattern=on 4pt off 2.5pt},
+    dm/lbl/.style   = {font=\sffamily\fontsize{6.5}{7.8}\selectfont, text=hpbInk,
+                       fill=white, inner sep=1.2pt, align=center},
+    dm/mult/.style  = {font=\sffamily\bfseries\fontsize{6.5}{7.8}\selectfont,
+                       text=hpbMuted, inner sep=1pt},
+  }
+  % ---- entity macro (local to this figure) --------------------------------
+  % \dment{<id>}{<x,y top-left>}{<width cm>}{<fill>}{<table>}{<model element>}
+  %       {<key/field, key/field, ...>}   key in {PK, FK, (empty)}
+  % Defines nodes <id>-h (header), <id>-1, <id>-2, ... (one per field) and
+  % the corners <id>-nw, <id>-se.
+  \def\dmPK{PK}%
+  \newcommand\dmkey[1]{\edef\dmk{#1}\makebox[0.42cm][l]{\sffamily\bfseries
+    \ifx\dmk\dmPK\dmk\else\textcolor{hpbMuted}{\dmk}\fi}}
+  \newcommand\dment[7]{%
+    \pgfmathsetlengthmacro\dmw{#3cm-8pt}%
+    \node[dm/head, text width=\dmw] (#1-h) at (#2)
+      {\textbf{\ttfamily\fontsize{7.5}{9}\selectfont #5}\\[-0.5pt]{\itshape #6}};
+    \foreach \k/\f [count=\i] in {#7}{%
+      \node[dm/row, text width=\dmw] (#1-\i)
+        at ([yshift={-0.08cm-(\i-1)*0.3cm}]#1-h.south west)
+        {\dmkey{\k}\texttt{\f}};
+      \xdef\dmlast{\i}}%
+    \coordinate (#1-se) at ([yshift=-0.1cm]#1-\dmlast.south west -| #1-h.east);
+    \coordinate (#1-nw) at (#1-h.north west);
+    \begin{pgfonlayer}{background}
+      \begin{scope}
+        \clip[rounded corners=4pt] (#1-nw) rectangle (#1-se);
+        \fill[white] (#1-nw) rectangle (#1-se);
+        \fill[#4] (#1-nw) rectangle (#1-h.south east);
+      \end{scope}
+    \end{pgfonlayer}
+    \draw[draw=hpbInk, line width=0.6pt] (#1-h.south west) -- (#1-h.south east);
+    \draw[dm/frame] (#1-nw) rectangle (#1-se);}
+
+  % ---- HPB tables -------------------------------------------------------------
+  \dment{pl}{0,0}{3.7}{hpbMain}{products}{product line $P$}
+    {PK/id, /model, /manufacturer\_ref, FK/parent\_product\_id}
+  \dment{bl}{0,-4.25}{3.7}{hpbMain}{product\_versions}{baseline $v$}
+    {PK/id, FK/product\_id, /name, /kind, /status,
+     /target\_date, /released\_at, FK/result\_product\_id}
+  \dment{pi}{5.9,-0.45}{3.9}{hpbHw!45}{product\_plan\_items}
+    {state of branch $b$ on line $P$}
+    {PK/id, FK/product\_id, /item\_type, /item\_id, FK/version\_id,
+     /outcome, /closed\_at, /note}
+  \dment{cm}{5.9,-4.95}{3.9}{hpbDisc}{product\_plan\_comments}
+    {discussion on a node (R7)}
+    {PK/id, FK/product\_id, /target\_type, /target\_id, /body,
+     {/created\_by, created\_at}}
+
+  % ---- existing trackers (referenced, not migrated) -------------------------
+  \draw[draw=hpbMuted, line width=0.8pt, rounded corners=5pt,
+        dash pattern=on 3pt off 2pt, fill=hpbGuide!25]
+    (11.75,-0.1) rectangle (15.95,-5.55);
+  \node[font=\sffamily\bfseries\fontsize{7}{8.4}\selectfont, text=hpbInk,
+        anchor=north west] at (11.85,-0.15) {existing trackers};
+  \node[font=\sffamily\itshape\fontsize{6.5}{7.8}\selectfont, text=hpbMuted,
+        anchor=north west, align=left] at (11.85,-0.5)
+    {branch $b$ with type $\tau(b)$};
+  \foreach \t/\c/\l/\y in {improvements/hpbImp/I/-1.05,
+                           issues/hpbIss/X/-2.15,
+                           tasks/hpbTask/T/-3.25,
+                           lab\_items/hpbLab/L/-4.35}{
+    \begin{scope}
+      \clip[rounded corners=4pt] (12.0,\y) rectangle (15.7,\y-0.9);
+      \fill[white] (12.0,\y) rectangle (15.7,\y-0.9);
+      \fill[\c] (12.0,\y) rectangle (15.7,\y-0.42);
+    \end{scope}
+    \draw[dm/frame] (12.0,\y) rectangle (15.7,\y-0.9);
+    \draw[draw=hpbInk, line width=0.6pt] (12.0,\y-0.42) -- (15.7,\y-0.42);
+    \node[hpb/event, fill=\c, minimum size=9.5pt, line width=1.1pt,
+          font=\sffamily\bfseries\fontsize{6.5}{7.8}\selectfont]
+      at (12.3,\y-0.21) {\l};
+    \node[font=\ttfamily\bfseries\fontsize{7.5}{9}\selectfont, text=hpbInk,
+          anchor=west, inner sep=0pt] at (12.62,\y-0.21) {\t};
+    \node[font=\ttfamily\fontsize{6.5}{7.8}\selectfont, text=hpbInk,
+          anchor=west, inner sep=0pt] at (12.12,\y-0.66)
+      {id, reference, title, status};
+  }
+  \coordinate (tr-w)  at (11.75,-2.15);
+  \coordinate (tr-s)  at (13.85,-5.55);
+
+  % ---- foreign keys (solid): referencing -> referenced table ---------------
+  % products.parent_product_id -> products.id   (line forest)
+  \draw[dm/fk] (pl-4.west) -- ++(-0.35,0) |- (pl-1.west);
+  \node[dm/lbl, rotate=90] at ([xshift=-0.35cm]pl-1.west |- 0,-1.42) {parent};
+  % product_versions.result_product_id -> products   (line fork: new reference)
+  \draw[dm/fk] (bl-8.west) -- ++(-0.75,0) |- (pl-h.west);
+  \node[dm/lbl, rotate=90] at (-0.75,-4.6) {line fork (new reference)};
+  \node[dm/mult, anchor=north east] at ([xshift=-1pt]bl-8.west) {*};
+  \node[dm/mult, anchor=south east] at ([xshift=-2pt,yshift=2.5pt]pl-h.west) {0..1};
+  % product_versions.product_id -> products   (baselines of a line)
+  \draw[dm/fk] (1.85,-4.25) -- (1.85,0 |- pl-se);
+  \node[dm/lbl, anchor=west] at (1.9,-3.15) {product\_id};
+  \node[dm/mult, anchor=north west] at ([xshift=3pt,yshift=-1pt]1.85,0 |- pl-se) {1};
+  \node[dm/mult, anchor=south west] at ([xshift=1pt]1.85,-4.25) {*};
+  % product_plan_items.product_id -> products
+  \draw[dm/fk] (pi-2.west) -- (4.75,0 |- pi-2.west) |- (pl-2.east);
+  \node[dm/mult, anchor=south east] at ([xshift=-1pt]pi-2.west) {*};
+  \node[dm/mult, anchor=south west] at ([xshift=2pt,yshift=2.5pt]pl-2.east) {1};
+  % product_plan_items.version_id -> product_versions   (g(b) or m(b))
+  \draw[dm/fk] (pi-5.west) -- (4.75,0 |- pi-5.west) |- (bl-3.east);
+  \node[dm/mult, anchor=south east] at ([xshift=-1pt]pi-5.west) {*};
+  \node[dm/mult, anchor=south west] at ([xshift=2pt,yshift=2.5pt]bl-3.east) {0..1};
+  \node[dm/lbl, anchor=west, align=left] at (4.8,-4.4)
+    {target $g(b)$ or\\closing $m(b)$};
+
+  % ---- polymorphic references (dashed): (type, id) pairs ---------------------
+  \draw[dm/ref] (pi-4.east) -- (tr-w |- pi-4.east);
+  \node[dm/lbl, anchor=south] at ([yshift=1pt]10.78,0 |- pi-4.east)
+    {item\_type,\\item\_id};
+  \node[dm/lbl, anchor=north, font=\sffamily\itshape\fontsize{6.5}{7.8}\selectfont,
+        text=hpbMuted] at ([yshift=-3pt]10.78,0 |- pi-4.east)
+    {referenced,\\not migrated};
+  % comments -> branch item, baseline (or product)
+  \draw[dm/ref] (cm-4.east) -| (tr-s);
+  \draw[dm/ref] (cm-nw |- bl-7.east) -- (bl-7.east);
+  \node[dm/lbl, anchor=north west, align=left] at ([yshift=-2pt]cm-se -| cm-nw)
+    {target\_type $\in$ \{product, version, improvement,\\
+     issue, task, lab\}, identified by target\_id};
+\end{hpbgraph}}
+\caption{Data model of the prototype implementation. HPB is an
+overlay: improvements, issues, tasks and lab items stay in their trackers and
+are referenced, not migrated. Solid arrows are foreign keys; dashed arrows are
+references by (type, identifier).}
+\label{fig:datamodel}
+\end{figure}
