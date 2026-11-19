@@ -298,7 +298,7 @@ HPB is dual-licensed:
 
 ## Author
 
-**Achraf Bouchtarouif El Khiat** — senior product manager, 7+ years running complete products
+**Achraf Bouchtarouif El Khiat** - senior product manager, 7+ years running complete products
 (hardware, firmware and software) across a large, high-rotation portfolio. HPB grew out of the gaps
 I found in existing methods while doing that job.
 [achrafbouchtarouif@gmail.com](mailto:achrafbouchtarouif@gmail.com) ·
