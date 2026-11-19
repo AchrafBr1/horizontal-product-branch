@@ -371,4 +371,4 @@ BibTeX and the machine-readable [CITATION.cff](../CITATION.cff) are in the
 ---
 
 *The HPB Guide 1.0 · © 2026 Achraf Bouchtarouif El Khiat · CC BY 4.0 ·
-<https://github.com/AchrafBr1/hpb>*
+<https://github.com/AchrafBr1/horizontal-product-branch>*

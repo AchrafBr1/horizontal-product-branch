@@ -4,14 +4,14 @@
   "description": "Command-line tool for HPB Markup: render Horizontal Product Branch diagrams to SVG and validate .hpb files.",
   "license": "MIT",
   "author": "Achraf Bouchtarouif El Khiat <achrafbouchtarouif@gmail.com>",
-  "homepage": "https://github.com/AchrafBr1/hpb/tree/main/packages/cli#readme",
+  "homepage": "https://github.com/AchrafBr1/horizontal-product-branch/tree/main/packages/cli#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AchrafBr1/hpb.git",
+    "url": "git+https://github.com/AchrafBr1/horizontal-product-branch.git",
     "directory": "packages/cli"
   },
   "bugs": {
-    "url": "https://github.com/AchrafBr1/hpb/issues"
+    "url": "https://github.com/AchrafBr1/horizontal-product-branch/issues"
   },
   "keywords": [
     "hpb",

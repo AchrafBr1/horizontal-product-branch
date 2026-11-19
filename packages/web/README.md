@@ -2,7 +2,7 @@
 
 > **Not on npm yet.** The install commands and CDN URLs below work once 1.0.0 is published on
 > npm; until then, build from source (see the root README,
-> [Quick start](https://github.com/AchrafBr1/hpb#quick-start)).
+> [Quick start](https://github.com/AchrafBr1/horizontal-product-branch#quick-start)).
 
 HPB Markup in the browser. Write a few lines of text, get a Horizontal Product Branch (HPB) diagram.
 

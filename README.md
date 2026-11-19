@@ -5,7 +5,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24355435.svg)](https://doi.org/10.5281/zenodo.24355435)
 [![Paper: CC BY 4.0](https://img.shields.io/badge/paper-CC%20BY%204.0-lightgrey.svg)](LICENSE-CC-BY-4.0.md)
 [![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE)
-[![CI](https://github.com/AchrafBr1/hpb/actions/workflows/ci.yml/badge.svg)](https://github.com/AchrafBr1/hpb/actions/workflows/ci.yml)
+[![CI](https://github.com/AchrafBr1/horizontal-product-branch/actions/workflows/ci.yml/badge.svg)](https://github.com/AchrafBr1/horizontal-product-branch/actions/workflows/ci.yml)
 
 ![HPB diagram of a hardware revision: Rev B forks a new product line from Rev A, which keeps its own maintenance until end of service](docs/assets/example-c.svg)
 
@@ -131,7 +131,7 @@ release v1.2 @2026-05 merges T-8, I-22, X-103
 > build from source:
 
 ```sh
-git clone https://github.com/AchrafBr1/hpb.git
+git clone https://github.com/AchrafBr1/horizontal-product-branch.git
 cd hpb
 pnpm install        # Node 20+ and pnpm 9
 pnpm -r build
@@ -236,7 +236,7 @@ notes: [CHANGELOG.md](CHANGELOG.md).
 
 ## Playground
 
-**[achrafbr1.github.io/hpb](https://achrafbr1.github.io/hpb/)**: write HPB Markup and see the
+**[achrafbr1.github.io/horizontal-product-branch](https://achrafbr1.github.io/horizontal-product-branch/)**: write HPB Markup and see the
 diagram, the diagnostics and the SVG live. *Available once GitHub Pages is enabled for this
 repository.* Meanwhile, after building, open [playground/index.html](playground/index.html) locally
 or build the self-contained page with `pnpm --filter @hpb/playground build`.
@@ -302,4 +302,4 @@ HPB is dual-licensed:
 (hardware, firmware and software) across a large, high-rotation portfolio. HPB grew out of the gaps
 I found in existing methods while doing that job.
 [achrafbouchtarouif@gmail.com](mailto:achrafbouchtarouif@gmail.com) ·
-[Issues and ideas](https://github.com/AchrafBr1/hpb/issues)
+[Issues and ideas](https://github.com/AchrafBr1/horizontal-product-branch/issues)

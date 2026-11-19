@@ -4,14 +4,14 @@
   "description": "HPB Markup core: parser, HPB rule checks (R1-R4, and R5-R7 where the text allows), ordinal layout and pure-string SVG renderer for Horizontal Product Branch diagrams. Zero runtime dependencies.",
   "license": "MIT",
   "author": "Achraf Bouchtarouif El Khiat <achrafbouchtarouif@gmail.com>",
-  "homepage": "https://github.com/AchrafBr1/hpb/tree/main/packages/core#readme",
+  "homepage": "https://github.com/AchrafBr1/horizontal-product-branch/tree/main/packages/core#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AchrafBr1/hpb.git",
+    "url": "git+https://github.com/AchrafBr1/horizontal-product-branch.git",
     "directory": "packages/core"
   },
   "bugs": {
-    "url": "https://github.com/AchrafBr1/hpb/issues"
+    "url": "https://github.com/AchrafBr1/horizontal-product-branch/issues"
   },
   "keywords": [
     "hpb",

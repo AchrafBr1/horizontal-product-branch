@@ -5,13 +5,13 @@
   "description": "HPB Markup: text-to-diagram toolkit for Horizontal Product Branch (HPB) diagrams",
   "license": "MIT",
   "author": "Achraf Bouchtarouif El Khiat <achrafbouchtarouif@gmail.com>",
-  "homepage": "https://github.com/AchrafBr1/hpb#readme",
+  "homepage": "https://github.com/AchrafBr1/horizontal-product-branch#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AchrafBr1/hpb.git"
+    "url": "git+https://github.com/AchrafBr1/horizontal-product-branch.git"
   },
   "bugs": {
-    "url": "https://github.com/AchrafBr1/hpb/issues"
+    "url": "https://github.com/AchrafBr1/horizontal-product-branch/issues"
   },
   "keywords": [
     "hpb",

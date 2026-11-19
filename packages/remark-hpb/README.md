@@ -2,7 +2,7 @@
 
 > **Not on npm yet.** The install commands and CDN URLs below work once 1.0.0 is published on
 > npm; until then, build from source (see the root README,
-> [Quick start](https://github.com/AchrafBr1/hpb#quick-start)).
+> [Quick start](https://github.com/AchrafBr1/horizontal-product-branch#quick-start)).
 
 Markdown plugins for **HPB Markup**: every ` ```hpb ` fenced code block becomes an inline
 SVG Horizontal Product Branch diagram, rendered at build time (no client-side JavaScript).

@@ -1,6 +1,6 @@
 name: Pages
 
-# Publishes the HPB Markup playground at https://achrafbr1.github.io/hpb/
+# Publishes the HPB Markup playground at https://achrafbr1.github.io/horizontal-product-branch/
 # One-time setup by the repository owner: Settings > Pages > Source: GitHub Actions, then
 # Settings > Secrets and variables > Actions > Variables: PAGES_ENABLED = true.
 # Until that variable is set, pushes skip this workflow's jobs (no failed deploy runs);
@@ -63,7 +63,7 @@ jobs:
           set -euo pipefail
           rm -rf _site
           mkdir -p _site/docs _site/paper
-          # the playground loads the bundle next to it, so the page works under /hpb/
+          # the playground loads the bundle next to it, so the page works under /horizontal-product-branch/
           cp packages/web/dist/hpb.min.js _site/hpb.min.js
           sed 's#<script src="../packages/web/dist/hpb.min.js"></script>#<script src="hpb.min.js"></script>#' playground/index.html > _site/index.html
           grep -q '<script src="hpb.min.js"></script>' _site/index.html || { echo "playground script tag not rewritten"; exit 1; }

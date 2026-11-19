@@ -10,7 +10,7 @@ Este directorio contiene el artículo
 > Preprint, versión 1.0, noviembre de 2026 · DOI
 > [10.5281/zenodo.24355435](https://doi.org/10.5281/zenodo.24355435) · CC BY 4.0
 
-- **Repositorio:** <https://github.com/AchrafBr1/hpb> (este directorio es `paper/`).
+- **Repositorio:** <https://github.com/AchrafBr1/horizontal-product-branch> (este directorio es `paper/`).
 - **PDF archivado:** [`HPB-v1.0.pdf`](HPB-v1.0.pdf) es **exactamente** el PDF
   publicado en Zenodo con el DOI anterior. No lo regeneres ni lo sustituyas: es
   la versión 1.0 citable.
@@ -107,7 +107,7 @@ No necesita `shell-escape`, `fontspec`, `minted` ni imágenes externas.
 - El bloque de autor **ya está puesto**: nombre y correo, **sin afiliación**
   (también en `pdfauthor`). No hay que tocarlo.
 - **Repositorio:** `\hpbrepourl` en `main.tex` ya vale
-  `https://github.com/AchrafBr1/hpb`, la misma URL que `repository`,
+  `https://github.com/AchrafBr1/horizontal-product-branch`, la misma URL que `repository`,
   `homepage` y `bugs` de cada `package.json`. No hay nada que rellenar.
 - **Fecha y DOI:** la fecha es fija (`November 2026`) y va acompañada de
   "Preprint, version 1.0" y del DOI de Zenodo. Al preparar una nueva versión,
@@ -151,7 +151,7 @@ DOI* de Zenodo agrupe todas las versiones.
    nuevo, quita el fichero antiguo de esa versión, cambia *Version* (1.1),
    fecha de publicación y, si quieres, las notas de cambios. Mantén el tipo
    *Publication → Preprint* y la licencia CC BY 4.0. Añade como *related
-   work* el repositorio `https://github.com/AchrafBr1/hpb` (*is supplemented
+   work* el repositorio `https://github.com/AchrafBr1/horizontal-product-branch` (*is supplemented
    by*).
 4. Publica y actualiza en el repositorio: `README.md` (sección *Read the
    paper* y *How to cite*), `CITATION.cff` (`preferred-citation`: `doi`,
@@ -160,7 +160,7 @@ DOI* de Zenodo agrupe todas las versiones.
 El toolkit se archiva aparte: el fichero `../.zenodo.json` sirve para la
 integración GitHub → Zenodo (cada *release* de GitHub crea una versión del
 software con su propio DOI, enlazada al artículo con `isSupplementTo`). Hay que
-activarla una vez en Zenodo: **Account → GitHub → activar `AchrafBr1/hpb`**.
+activarla una vez en Zenodo: **Account → GitHub → activar `AchrafBr1/horizontal-product-branch`**.
 
 ---
 

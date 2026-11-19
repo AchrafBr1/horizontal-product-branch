@@ -2,7 +2,7 @@
 
 > **Not on npm yet.** The install commands and CDN URLs below work once 1.0.0 is published on
 > npm; until then, build from source (see the root README,
-> [Quick start](https://github.com/AchrafBr1/hpb#quick-start)).
+> [Quick start](https://github.com/AchrafBr1/horizontal-product-branch#quick-start)).
 
 React component for **HPB Markup**, the text language for Horizontal Product Branch diagrams.
 Write a few lines of text, get an HPB diagram. SSR-safe, works with the Next.js App Router and Vite.

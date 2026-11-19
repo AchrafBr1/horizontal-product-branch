@@ -4,14 +4,14 @@
   "description": "remark (unified) and markdown-it plugins that turn ```hpb fenced code blocks into inline HPB (Horizontal Product Branch) SVG diagrams.",
   "license": "MIT",
   "author": "Achraf Bouchtarouif El Khiat <achrafbouchtarouif@gmail.com>",
-  "homepage": "https://github.com/AchrafBr1/hpb/tree/main/packages/remark-hpb#readme",
+  "homepage": "https://github.com/AchrafBr1/horizontal-product-branch/tree/main/packages/remark-hpb#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AchrafBr1/hpb.git",
+    "url": "git+https://github.com/AchrafBr1/horizontal-product-branch.git",
     "directory": "packages/remark-hpb"
   },
   "bugs": {
-    "url": "https://github.com/AchrafBr1/hpb/issues"
+    "url": "https://github.com/AchrafBr1/horizontal-product-branch/issues"
   },
   "keywords": [
     "hpb",

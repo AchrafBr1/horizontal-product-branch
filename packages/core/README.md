@@ -2,9 +2,9 @@
 
 > **Not on npm yet.** The install commands and CDN URLs below work once 1.0.0 is published on
 > npm; until then, build from source (see the root README,
-> [Quick start](https://github.com/AchrafBr1/hpb#quick-start)).
+> [Quick start](https://github.com/AchrafBr1/horizontal-product-branch#quick-start)).
 
-Parser, rule checks (R1–R3 in full, R4 as an open-branch release gate, R5–R7 in part, see the [language reference, §4](https://github.com/AchrafBr1/hpb/blob/main/docs/language.md#rules)), deterministic layout and pure-string SVG renderer for
+Parser, rule checks (R1–R3 in full, R4 as an open-branch release gate, R5–R7 in part, see the [language reference, §4](https://github.com/AchrafBr1/horizontal-product-branch/blob/main/docs/language.md#rules)), deterministic layout and pure-string SVG renderer for
 **HPB Markup**, the text language for Horizontal Product Branch diagrams.
 Zero runtime dependencies; works in Node, SSR and the browser (no DOM needed).
 
